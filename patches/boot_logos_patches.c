@@ -23,6 +23,7 @@ RECOMP_DECLARE_EVENT(recomp_on_init());
 RECOMP_DECLARE_EVENT(dk64recomp_every_frame());
 RECOMP_DECLARE_EVENT(recomp_on_map_load());
 RECOMP_DECLARE_EVENT(recomp_on_eeprom_load());
+void stereo_runtime_tick(void); // patches/stereo_runtime.c
 #define TEXT_SCALE 0.25f
 #define ORIGINAL_TEXT_SCALE 0.5f
 
@@ -305,6 +306,10 @@ RECOMP_PATCH void func_global_asm_805FBFF4(s32 arg0) {
 
         // @recomp: Fire per-frame event.
         dk64recomp_every_frame();
+
+        // @recomp: Push the stereo scene classification. This site is used
+        // because it runs in every game mode; the world draw path does not.
+        stereo_runtime_tick();
 
         if (D_global_asm_8076A0B1 & 1 && !D_global_asm_8076A0B2) {
             func_global_asm_805FE7FC();

@@ -116,6 +116,22 @@ extern "C" void recomp_get_draw_distance(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, dk64::get_draw_distance() * 50.0f);
 }
 
+// DK64-side stereo_runtime_tick pushes a single classification bool per frame:
+// 1 = scene should use reduced convergence (menu / cutscene / minigame),
+// 0 = full user-configured convergence. The host applies the scale in
+// apply_pending_stereo_config().
+extern "C" void recomp_stereo_set_low_convergence_scene(uint8_t* rdram, recomp_context* ctx) {
+    const s32 active = _arg<0, s32>(rdram, ctx);
+    recompui::renderer::set_stereo_runtime_low_convergence(active != 0);
+}
+
+// 1 while the first-person camera is live and the aiming reticle is on screen.
+// The renderer only looks for the reticle while this is set.
+extern "C" void recomp_stereo_set_first_person(uint8_t* rdram, recomp_context* ctx) {
+    const s32 active = _arg<0, s32>(rdram, ctx);
+    recompui::renderer::set_stereo_runtime_first_person(active != 0);
+}
+
 extern "C" void recomp_get_story_skip(uint8_t* rdram, recomp_context* ctx) {
     switch (dk64::get_story_skip()) {
         case dk64::StorySkipMode::Off:
@@ -150,7 +166,11 @@ extern "C" void recomp_get_camera_type(uint8_t* rdram, recomp_context* ctx) {
 extern "C" void recomp_get_lightning_intensity(uint8_t* rdram, recomp_context* ctx) {
     switch (dk64::get_lightning_flash()) {
         case dk64::LightningFlashMode::Off:
-            _return(ctx, 0);
+            // 0.0f, not 0: _return dispatches on the C++ type, so an integer
+            // literal writes the integer return register and leaves f0 - which
+            // is the register this float-declared export is actually read from -
+            // holding a stale value. That made "Off" flash anyway.
+            _return(ctx, 0.0f);
             return;
         case dk64::LightningFlashMode::Reduced:
             _return(ctx, 0.6f);

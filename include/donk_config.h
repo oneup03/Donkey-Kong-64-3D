@@ -32,6 +32,14 @@ namespace dk64 {
         namespace graphics {
             inline const std::string cutscene_borders = "cutscene_borders";
             inline const std::string draw_distance = "draw_distance";
+            inline const std::string stereo_mode = "stereo_mode";
+            inline const std::string stereo_separation = "stereo_separation";
+            inline const std::string stereo_convergence = "stereo_convergence";
+            inline const std::string stereo_hud_depth = "stereo_hud_depth";
+            inline const std::string stereo_auto_convergence = "stereo_auto_convergence";
+            inline const std::string stereo_comfort_target = "stereo_comfort_target";
+            inline const std::string stereo_ghost_contrast = "stereo_ghost_contrast";
+            inline const std::string stereo_ghost_black_floor = "stereo_ghost_black_floor";
         }
 
         namespace technical {
@@ -94,6 +102,43 @@ namespace dk64 {
         On
     };
     MultiplayerEnabled get_multiplayer_enabled();
+
+    // Mirrors RT64::UserConfiguration::StereoMode. Kept as a separate game-side
+    // enum, converted explicitly in config.cpp, so a reorder on either side
+    // can't silently misalign the two.
+    enum class StereoMode {
+        Off,
+        SideBySide,
+        TopAndBottom,
+        RowInterlaced,
+        ColumnInterlaced,
+        Checkerboard,
+        Anaglyph,
+        LeiaSR,
+        OptionCount
+    };
+    StereoMode get_stereo_mode();
+
+    // Separation is the total background disparity as a fraction of screen
+    // width: each slider point is 0.2%, so the default 10 is 2% and the maximum
+    // 50 is 10% (roughly IPD over screen width, the divergence ceiling).
+    uint32_t get_stereo_separation();
+    // The distance at which geometry sits exactly on the screen plane. This is
+    // the one slider with sub-unit steps (0.1..50); it crosses the renderer
+    // bridge in tenths, converted once in push_stereo_config_to_renderer().
+    double get_stereo_convergence();
+    // 50 = screen plane, above = pop-out, below = pushed back.
+    uint32_t get_stereo_hud_depth();
+    // Depth-driven auto convergence: measures the nearest on-screen geometry and
+    // pulls the screen plane in when it would pop out uncomfortably.
+    bool get_stereo_auto_convergence();
+    // Comfort budget for that loop. Lower tolerates less pop-out and so pulls in
+    // more eagerly.
+    uint32_t get_stereo_comfort_target();
+    // Ghost reduction. Both are exact no-ops at their defaults: contrast 100
+    // means no squeeze toward mid-grey, black floor 0 means no lift.
+    uint32_t get_stereo_ghost_contrast();
+    uint32_t get_stereo_ghost_black_floor();
 
     void open_quit_game_prompt();
 };

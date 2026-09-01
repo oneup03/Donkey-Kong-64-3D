@@ -1352,6 +1352,13 @@ RECOMP_PATCH Gfx* func_global_asm_807007B8(Gfx* dl) {
 
     if (D_global_asm_80754BC0 != 0) {
         gDPPipeSync(dl++);
+        // @recomp: Tag the lens flare's projection as being at infinity so
+        // stereo puts it behind all world geometry instead of on the screen
+        // plane. func_global_asm_8070068C loads the projection matrix, so the
+        // group has to be emitted before it rather than after. Tagging here at
+        // the call site rather than inside that function keeps the other caller
+        // (func_global_asm_8069FA40) on its normal treatment.
+        gEXMatrixGroupSimpleNormal(dl++, MTXTAG_PROJ_AT_INFINITY, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_EDIT_NONE);
         dl = func_global_asm_8070068C(dl);
         gSPMatrix(dl++, &D_2000180, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
         gDPPipeSync(dl++);
@@ -1374,6 +1381,10 @@ RECOMP_PATCH Gfx* func_global_asm_807007B8(Gfx* dl) {
         }
         gDPSetColorDither(dl++, G_CD_MAGICSQ);
         gDPSetAlphaDither(dl++, G_AD_PATTERN);
+        // @recomp: Restore the camera projection group. A matrix group persists
+        // for everything drawn afterwards, and the HUD is still to come this
+        // frame - leaving the at-infinity tag set would push it behind the world.
+        gEXMatrixGroupSimpleNormal(dl++, MTXTAG_CAMERAPROJECTION, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_EDIT_NONE);
     }
     return dl;
 }

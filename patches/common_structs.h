@@ -64,6 +64,19 @@ typedef enum interpolationIDs {
     MTXTAG_SKYBOXBLEND,
     MTXTAG_CAMERAPROJECTION,
     MTXTAG_HELMTIMER,
+    // @recomp: Screen-space elements that represent something at an effectively
+    // infinite distance - the sun and its lens flare. In stereo these must sit
+    // at maximum positive parallax (behind all world geometry) rather than on
+    // the screen plane, which is where an untagged orthographic projection
+    // lands. Kept clear of the 0x600-0x6FF block the stereo code reserves for
+    // HUD projections.
+    MTXTAG_PROJ_AT_INFINITY = 0x700,
+    // @recomp: The rain/snow overlay. It builds its own projection but emits no
+    // matrix group, so it inherited whichever group was last set - and the sky
+    // code leaves MTXTAG_SKYBOXBLEND behind. That made a screen-space weather
+    // effect indistinguishable from the sky sprites drawn just before it, and
+    // sent it to infinity along with them. Naming it makes it ordinary 2D.
+    MTXTAG_PROJ_WEATHER = 0x710,
     MTXTAG_MAINMENU_BARREL = 0xF00,
     MTXTAG_ACTORS = 0x1000, // 0x100 allocated per actor
     MTXTAG_PROP = 0x101000,

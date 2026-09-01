@@ -1,0 +1,117 @@
+{
+    "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceFolder}"
+    },
+    "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+    },
+    "tasks": [
+        {
+            "label": "Build",
+            "detail": "Set up whatever is missing (ROM, recompilers, vcpkg), configure if needed, then build DK64Recompiled (Release)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build (Debug)",
+            "detail": "Same as Build, into build-cmake-debug",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": [
+                "build",
+                "Debug"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build (RelWithDebInfo)",
+            "detail": "Same as Build, into build-cmake-relwithdebinfo",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": [
+                "build",
+                "RelWithDebInfo"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build (clean configure)",
+            "detail": "Wipe the CMake cache, reconfigure, then build",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": [
+                "clean"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build (regen recomp)",
+            "detail": "Re-run N64Recomp + RSPRecomp, then build (use when us.toml, n_aspMain.toml or DK64Syms change)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": [
+                "regen"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Setup: Decompress ROM",
+            "detail": "Regenerate donkeykong64.decompressed.us.z64 from the NTSC-U 1.0 ROM in the repo root",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": [
+                "rom"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Setup: Build recompiler tools",
+            "detail": "Rebuild N64Recomp.exe / RSPRecomp.exe from lib/N64ModernRuntime/N64Recomp",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": [
+                "tools"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Run",
+            "detail": "Launch the Release build from the repo root (so assets/ resolves)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build-cmake\\DK64Recompiled.exe",
+            "args": [
+                "--show-console"
+            ],
+            "dependsOn": "Build",
+            "problemMatcher": []
+        }
+    ]
+}

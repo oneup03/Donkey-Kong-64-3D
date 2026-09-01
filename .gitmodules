@@ -4,14 +4,19 @@
 	branch = patch-1
 [submodule "lib/rt64"]
 	path = lib/rt64
-	url = https://github.com/rt64/rt64
+	url = https://github.com/oneup03/rt64-3D.git
+	branch = DK64-3D
 [submodule "lib/RecompFrontend"]
 	path = lib/RecompFrontend
-	url = https://github.com/Killklli/RecompFrontend
-	branch = mod_store
+	url = https://github.com/oneup03/RecompFrontend3D.git
+	branch = DK64-3D
 [submodule "lib/dk64_decomp"]
 	path = lib/dk64_decomp
 	url = https://gitlab.com/dk64_decomp/dk64
 [submodule "lib/vcpkg"]
 	path = lib/vcpkg
 	url = https://github.com/microsoft/vcpkg
+[submodule "lib/SR-lib"]
+	path = lib/SR-lib
+	url = https://github.com/bo3b/SR-lib.git
+	branch = api_expansion

@@ -7,6 +7,8 @@
 extern s8 D_global_asm_80745840;
 extern s8 D_global_asm_8074583C;
 extern void func_global_asm_8060A398(s32 arg0);
+// Defined in stereo_runtime.c.
+extern void stereo_note_first_person_frame(void);
 extern void func_global_asm_80737B58(u8 arg0, u16 arg1);
 RECOMP_DECLARE_EVENT(recomp_on_file_start());
 RECOMP_DECLARE_EVENT(recomp_on_new_file_start());
@@ -677,6 +679,12 @@ f32 func_global_asm_806EA2D8(void);
 
 // @recomp: First person controls
 RECOMP_PATCH void func_global_asm_806EA628(void) {
+    // This function only runs while the first-person camera is live, which makes
+    // it the game's own statement that the reticle is on screen. It is a pulse
+    // rather than a state, so stereo_runtime.c holds it for a couple of frames
+    // and lets it lapse - that is what clears the flag when a pause or a
+    // bananaport suspends first-person updates.
+    stereo_note_first_person_frame();
     PlayerAdditionalActorData *temp_a0;
     s32 pad;
     f32 *temp_v0;
