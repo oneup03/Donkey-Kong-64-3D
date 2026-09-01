@@ -1,0 +1,470 @@
+name: release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  N64RECOMP_COMMIT: 2b6f05688de2abc7d86da5b4a89b84c2c6acbabe
+  SDL2_VERSION: 2.30.3
+  FLATPAK_ID: io.github.dk64recompiled.dk64recompiled
+  FREEDESKTOP_VERSION: 25.08
+  LLVM_VERSION: 20
+
+jobs:
+  # Only computes the short SHA the build jobs name their artifacts with. It
+  # used to run the recompiler once and share the result, but that result is C
+  # translated from the ROM and sharing it meant publishing it as a workflow
+  # artifact, readable by anyone who can read the repository. Each build job now
+  # runs the recompiler itself.
+  recomp:
+    name: Prepare
+    runs-on: ubuntu-22.04
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - name: Compute short SHA
+        id: vars
+        run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+  build-windows:
+    name: Windows (x64)
+    needs: recomp
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ env.N64RECOMP_COMMIT }}
+
+      - name: Clone deps
+        # Explicit, because the default shell on the Windows runner is pwsh and
+        # this step is written for bash.
+        shell: bash
+        env:
+          DEPS_FETCH: ${{ secrets.DEPS_FETCH }}
+          DEPS_EXTRACT: ${{ secrets.DEPS_EXTRACT }}
+        run: |
+          eval "${DEPS_FETCH}"
+          eval "${DEPS_EXTRACT}"
+
+      - name: Install Ninja
+        run: choco install ninja --no-progress --limit-output
+
+      # patches/Makefile needs a MIPS-capable clang; the one bundled with the
+      # VS image is built without MIPS targets.
+      - name: Download portable LLVM
+        shell: pwsh
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          New-Item -ItemType Directory -Path portable-llvm -Force | Out-Null
+          Invoke-WebRequest -Uri "https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.3/LLVM-19.1.3-Windows-X64.tar.xz" -OutFile LLVM.tar.xz
+          7z x LLVM.tar.xz -bso0 -bsp0
+          7z x LLVM.tar "-oportable-llvm" -bso0 -bsp0
+          Remove-Item LLVM.tar, LLVM.tar.xz -ErrorAction SilentlyContinue
+
+      - name: Configure MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      # Still needed on the build jobs: CMake runs `N64Recomp patches.toml` as
+      # part of the build to regenerate RecompiledPatches/.
+      - name: Build N64Recomp & RSPRecomp
+        shell: pwsh
+        run: |
+          git clone https://github.com/Mr-Wiseguy/N64Recomp.git --recurse-submodules N64RecompSource
+          cd N64RecompSource
+          git checkout $env:N64RECOMP_COMMIT
+          git submodule update --init --recursive
+          $cpuCores = (Get-CimInstance -ClassName Win32_Processor).NumberOfLogicalProcessors
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=ninja -G Ninja -S . -B cmake-build
+          cmake --build cmake-build --config Release --target N64RecompCLI -j $cpuCores
+          cmake --build cmake-build --config Release --target RSPRecomp -j $cpuCores
+          Copy-Item cmake-build\N64Recomp.exe ..\
+          Copy-Item cmake-build\RSPRecomp.exe ..\
+
+      - name: Run N64Recomp & RSPRecomp
+        shell: pwsh
+        run: |
+          .\N64Recomp.exe us.toml
+          .\RSPRecomp.exe n_aspMain.toml
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          # Drop the preinstalled LLVM so it doesn't overshadow the VS one and
+          # pull in a mismatched lld-link.
+          $env:PATH = ($env:PATH -split ';' | Where-Object { $_ -ne 'C:\Program Files\LLVM\bin' }) -join ';'
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache `
+            -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl `
+            -DPATCHES_C_COMPILER="..\portable-llvm\LLVM-19.1.3-Windows-X64\bin\clang.exe" `
+            -DPATCHES_LD="..\portable-llvm\LLVM-19.1.3-Windows-X64\bin\ld.lld.exe" `
+            -DCMAKE_CXX_FLAGS="-Xclang -fexceptions -Xclang -fcxx-exceptions" `
+            -S . -B build-cmake
+
+      - name: Build DK64Recompiled
+        shell: pwsh
+        run: |
+          $env:PATH = ($env:PATH -split ';' | Where-Object { $_ -ne 'C:\Program Files\LLVM\bin' }) -join ';'
+          cmake --build build-cmake --target DK64Recompiled --config Release
+
+      - name: Stage artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path package -Force | Out-Null
+          # vcpkg drops libcurl/zlib somewhere under build-cmake that moves
+          # between vcpkg baselines, so search rather than hardcode.
+          function Copy-Artifact {
+              param($FileName)
+              $file = Get-ChildItem -Path build-cmake -Recurse -Filter $FileName | Select-Object -First 1
+              if (-not $file) { Write-Error "Could not find '$FileName' under build-cmake/"; exit 1 }
+              Copy-Item $file.FullName -Destination package\ -Force
+          }
+          foreach ($f in 'DK64Recompiled.exe', 'dxcompiler.dll', 'dxil.dll', 'SDL2.dll', 'libcurl.dll', 'zlib1.dll') {
+              Copy-Artifact -FileName $f
+          }
+          Copy-Item recompcontrollerdb.txt package\
+          Copy-Item -Recurse assets       package\assets
+
+      - name: Create zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path package\* -DestinationPath "DK64Recompiled3D-windows-${{ needs.recomp.outputs.sha_short }}.zip" -Force
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: DK64Recompiled3D-windows-${{ needs.recomp.outputs.sha_short }}.zip
+          if-no-files-found: error
+
+  build-linux-x64:
+    name: Linux (x64)
+    needs: recomp
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ env.N64RECOMP_COMMIT }}
+
+      - name: Clone deps
+        # Explicit, because the default shell on the Windows runner is pwsh and
+        # this step is written for bash.
+        shell: bash
+        env:
+          DEPS_FETCH: ${{ secrets.DEPS_FETCH }}
+          DEPS_EXTRACT: ${{ secrets.DEPS_EXTRACT }}
+        run: |
+          eval "${DEPS_FETCH}"
+          eval "${DEPS_EXTRACT}"
+
+      - name: Install Linux deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev lld llvm clang-15 g++-11 gcc-11 wget libfuse2 libcurl4-openssl-dev
+
+      - name: Build SDL2 from source
+        run: |
+          wget -q https://github.com/libsdl-org/SDL/releases/download/release-${SDL2_VERSION}/SDL2-${SDL2_VERSION}.tar.gz
+          tar -xzf SDL2-${SDL2_VERSION}.tar.gz
+          cd SDL2-${SDL2_VERSION}
+          ./configure
+          make -j $(nproc)
+          sudo make install
+          sudo cp -av /usr/local/lib/libSDL* /lib/x86_64-linux-gnu/
+
+      - name: Build N64Recomp & RSPRecomp
+        run: |
+          git clone https://github.com/Mr-Wiseguy/N64Recomp.git --recurse-submodules N64RecompSource
+          cd N64RecompSource
+          git checkout $N64RECOMP_COMMIT
+          git submodule update --init --recursive
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_C_COMPILER=gcc-11 -DCMAKE_MAKE_PROGRAM=ninja -G Ninja -S . -B cmake-build
+          cmake --build cmake-build --config Release --target N64RecompCLI -j $(nproc)
+          cmake --build cmake-build --config Release --target RSPRecomp -j $(nproc)
+          cp cmake-build/N64Recomp ..
+          cp cmake-build/RSPRecomp ..
+
+      - name: Run N64Recomp & RSPRecomp
+        run: |
+          chmod +x N64Recomp RSPRecomp
+          ./N64Recomp us.toml
+          ./RSPRecomp n_aspMain.toml
+
+      - name: Build DK64Recompiled
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER=clang++-15 -DCMAKE_C_COMPILER=clang-15 \
+            -DPATCHES_C_COMPILER=clang-15 -DPATCHES_LD=ld.lld-15 \
+            -DCMAKE_MAKE_PROGRAM=ninja -G Ninja -S . -B build-cmake
+          cmake --build build-cmake --config Release --target DK64Recompiled -j $(nproc)
+
+      - name: Create tarball
+        run: |
+          mv build-cmake/DK64Recompiled DK64Recompiled
+          tar -czf "DK64Recompiled3D-linux-x64-${{ needs.recomp.outputs.sha_short }}.tar.gz" \
+            DK64Recompiled assets/ recompcontrollerdb.txt
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux-x64
+          path: DK64Recompiled3D-linux-x64-${{ needs.recomp.outputs.sha_short }}.tar.gz
+          if-no-files-found: error
+
+  build-linux-arm64:
+    name: Linux (arm64)
+    needs: recomp
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ env.N64RECOMP_COMMIT }}
+
+      - name: Clone deps
+        # Explicit, because the default shell on the Windows runner is pwsh and
+        # this step is written for bash.
+        shell: bash
+        env:
+          DEPS_FETCH: ${{ secrets.DEPS_FETCH }}
+          DEPS_EXTRACT: ${{ secrets.DEPS_EXTRACT }}
+        run: |
+          eval "${DEPS_FETCH}"
+          eval "${DEPS_EXTRACT}"
+
+      - name: Install Linux deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev lld llvm clang-15 g++-11 gcc-11 wget libfuse2 libcurl4-openssl-dev
+
+      - name: Build SDL2 from source
+        run: |
+          wget -q https://github.com/libsdl-org/SDL/releases/download/release-${SDL2_VERSION}/SDL2-${SDL2_VERSION}.tar.gz
+          tar -xzf SDL2-${SDL2_VERSION}.tar.gz
+          cd SDL2-${SDL2_VERSION}
+          ./configure
+          make -j $(nproc)
+          sudo make install
+          sudo cp -av /usr/local/lib/libSDL* /lib/aarch64-linux-gnu/
+
+      - name: Build N64Recomp & RSPRecomp
+        run: |
+          git clone https://github.com/Mr-Wiseguy/N64Recomp.git --recurse-submodules N64RecompSource
+          cd N64RecompSource
+          git checkout $N64RECOMP_COMMIT
+          git submodule update --init --recursive
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_C_COMPILER=gcc-11 -DCMAKE_MAKE_PROGRAM=ninja -G Ninja -S . -B cmake-build
+          cmake --build cmake-build --config Release --target N64RecompCLI -j $(nproc)
+          cmake --build cmake-build --config Release --target RSPRecomp -j $(nproc)
+          cp cmake-build/N64Recomp ..
+          cp cmake-build/RSPRecomp ..
+
+      - name: Run N64Recomp & RSPRecomp
+        run: |
+          chmod +x N64Recomp RSPRecomp
+          ./N64Recomp us.toml
+          ./RSPRecomp n_aspMain.toml
+
+      - name: Build DK64Recompiled
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER=clang++-15 -DCMAKE_C_COMPILER=clang-15 \
+            -DCMAKE_MAKE_PROGRAM=ninja -G Ninja -S . -B build-cmake
+          cmake --build build-cmake --config Release --target DK64Recompiled -j $(nproc)
+
+      - name: Create tarball
+        run: |
+          mv build-cmake/DK64Recompiled DK64Recompiled
+          tar -czf "DK64Recompiled3D-linux-arm64-${{ needs.recomp.outputs.sha_short }}.tar.gz" \
+            DK64Recompiled assets/ recompcontrollerdb.txt
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux-arm64
+          path: DK64Recompiled3D-linux-arm64-${{ needs.recomp.outputs.sha_short }}.tar.gz
+          if-no-files-found: error
+
+  build-linux-flatpak:
+    name: Linux (flatpak)
+    needs: recomp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # The manifest runs the recompilers inside the sandbox, so this job builds
+      # from source rather than from the recomp artifact.
+      - name: Clone deps
+        # Explicit, because the default shell on the Windows runner is pwsh and
+        # this step is written for bash.
+        shell: bash
+        env:
+          DEPS_FETCH: ${{ secrets.DEPS_FETCH }}
+          DEPS_EXTRACT: ${{ secrets.DEPS_EXTRACT }}
+        run: |
+          eval "${DEPS_FETCH}"
+          eval "${DEPS_EXTRACT}"
+
+      - name: Install Linux deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak-builder lld
+
+      - name: Prepare Flatpak runtime/SDK
+        run: |
+          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y flathub org.freedesktop.Sdk//${FREEDESKTOP_VERSION}
+          flatpak --user install -y flathub org.freedesktop.Sdk.Extension.llvm${LLVM_VERSION}//${FREEDESKTOP_VERSION}
+
+      - name: Build Flatpak bundle
+        run: |
+          git config --global protocol.file.allow always
+          make -C patches CC=clang LD=ld.lld
+          flatpak-builder --user --force-clean --install-deps-from=flathub --repo=repo builddir ./flatpak/${FLATPAK_ID}.json
+          flatpak build-bundle repo "DK64Recompiled3D-flatpak-${{ needs.recomp.outputs.sha_short }}.flatpak" ${FLATPAK_ID} --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-flatpak
+          path: DK64Recompiled3D-flatpak-${{ needs.recomp.outputs.sha_short }}.flatpak
+          if-no-files-found: error
+
+  build-macos:
+    name: macOS (arm64)
+    needs: recomp
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ env.N64RECOMP_COMMIT }}
+
+      - name: Clone deps
+        # Explicit, because the default shell on the Windows runner is pwsh and
+        # this step is written for bash.
+        shell: bash
+        env:
+          DEPS_FETCH: ${{ secrets.DEPS_FETCH }}
+          DEPS_EXTRACT: ${{ secrets.DEPS_EXTRACT }}
+        run: |
+          eval "${DEPS_FETCH}"
+          eval "${DEPS_EXTRACT}"
+
+      # Submodules arrive at depth 1, so lib/vcpkg holds only the pinned commit -
+      # not the older one vcpkg.json names as its baseline. macOS is the only
+      # platform that reaches the vendored copy: Windows inherits a full
+      # VCPKG_ROOT from the VS dev prompt, and Linux resolves curl from apt.
+      - name: Fetch the vcpkg manifest baseline
+        run: git -C lib/vcpkg fetch --depth 1 origin "$(jq -r '."builtin-baseline"' vcpkg.json)"
+
+      - name: Homebrew Setup
+        run: |
+          brew install ninja
+          arch -arm64 brew install curl
+          # These shadow the versions rt64/RmlUi expect and break the link.
+          brew uninstall --ignore-dependencies libpng freetype || true
+
+      # MacPorts supplies clang-18 / ld.lld-18, which the MIPS patches need.
+      - name: MacPorts Setup
+        uses: melusina-org/setup-macports@v1
+        with:
+          parameters: '.github/macos/macports.yaml'
+
+      - name: Build N64Recomp & RSPRecomp
+        run: |
+          git clone https://github.com/Mr-Wiseguy/N64Recomp.git --recurse-submodules N64RecompSource
+          cd N64RecompSource
+          git checkout $N64RECOMP_COMMIT
+          git submodule update --init --recursive
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=ninja -G Ninja -S . -B cmake-build
+          cmake --build cmake-build --config Release --target N64RecompCLI -j $(sysctl -n hw.ncpu)
+          cmake --build cmake-build --config Release --target RSPRecomp -j $(sysctl -n hw.ncpu)
+          cp cmake-build/N64Recomp ..
+          cp cmake-build/RSPRecomp ..
+
+      - name: Run N64Recomp & RSPRecomp
+        run: |
+          chmod +x N64Recomp RSPRecomp
+          ./N64Recomp us.toml
+          ./RSPRecomp n_aspMain.toml
+
+      - name: Build DK64Recompiled
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_MAKE_PROGRAM=ninja -G Ninja -S . -B build-cmake \
+            -DPATCHES_LD=/opt/local/bin/ld.lld-mp-18 \
+            -DCMAKE_AR=/opt/local/bin/llvm-ar-mp-18 \
+            -DPATCHES_C_COMPILER=/opt/local/bin/clang-mp-18 \
+            -DCMAKE_OSX_ARCHITECTURES="arm64" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET="14.0" \
+            -DCURL_ROOT="$(brew --prefix curl)"
+          cmake --build build-cmake --config Release --target DK64Recompiled -j $(sysctl -n hw.ncpu)
+
+      - name: Package .app
+        run: |
+          mv build-cmake/DK64Recompiled.app DK64Recompiled.app
+          zip -r -y "DK64Recompiled3D-macos-arm64-${{ needs.recomp.outputs.sha_short }}.zip" DK64Recompiled.app
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: DK64Recompiled3D-macos-arm64-${{ needs.recomp.outputs.sha_short }}.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish rolling release
+    needs: [recomp, build-windows, build-linux-x64, build-linux-arm64, build-linux-flatpak, build-macos]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publish rolling release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete rolling --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+          gh release create rolling dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Rolling Release" \
+            --notes "Built from $GITHUB_SHA (${{ needs.recomp.outputs.sha_short }})"

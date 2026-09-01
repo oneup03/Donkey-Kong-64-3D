@@ -1850,6 +1850,11 @@ RECOMP_PATCH Gfx* func_global_asm_80710CA0(Gfx* dl, Actor* arg1) {
     gDPPipeSync(dl++);
     gSPDisplayList(dl++, &D_1000118);
     gSPDisplayList(dl++, &D_1000020);
+    // @recomp: Claim a group of our own before loading the projection. Without
+    // this the weather inherits MTXTAG_SKYBOXBLEND from the sky code that ran
+    // earlier, and stereo cannot tell a screen-space rain overlay from the sky
+    // sprites it happens to be tagged identically to.
+    gEXMatrixGroupSimpleNormal(dl++, MTXTAG_PROJ_WEATHER, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_EDIT_NONE);
     gSPMatrix(dl++, &D_20000C0, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
     gSPTexture(dl++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
     gDPSetCombineMode(dl++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
@@ -1927,6 +1932,9 @@ RECOMP_PATCH Gfx* func_global_asm_80710CA0(Gfx* dl, Actor* arg1) {
         }
     }
 
+    // @recomp: Restore the camera group, for the same reason the sun patch does:
+    // a matrix group persists for everything drawn after it.
+    gEXMatrixGroupSimpleNormal(dl++, MTXTAG_CAMERAPROJECTION, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_EDIT_NONE);
     dl = popHUD(dl, ALIGN_LEFT);
     return dl;
 }

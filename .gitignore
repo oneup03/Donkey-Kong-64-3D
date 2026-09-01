@@ -15,8 +15,11 @@ RecompiledPatches/
 
 # Linux build output
 build/
-build-cmake/
+build-cmake*/
 *.o
+
+# Host tools built by build.bat (N64Recomp / RSPRecomp)
+build-tools/
 
 # Flatpak build process
 repo/
@@ -57,7 +60,7 @@ vcpkg_installed/
 
 # Runtime files
 imgui.ini
-rt64.log
+*.log
 
 node_modules/
 
