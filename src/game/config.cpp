@@ -235,10 +235,17 @@ static void push_stereo_config_to_renderer() {
         graphics_config.get_temp_option_value(dk64::configkeys::graphics::stereo_mode)));
     uint32_t separation = static_cast<uint32_t>(get_num(dk64::configkeys::graphics::stereo_separation));
     // Convergence is the one slider with sub-unit steps, so it crosses the
-    // renderer bridge in tenths rather than whole units. Everything downstream
-    // of set_stereo_config works in those tenths.
+    // renderer bridge as an integer count of HUNDREDTHS of a slider unit rather
+    // than whole units. Everything downstream of set_stereo_config works in
+    // those hundredths.
+    //
+    // A hundredth, not the tenth the slider itself steps in, and the extra digit
+    // is not for the user. The renderer's auto-convergence loop solves a
+    // continuous convergence and has to round it into this unit to send it back;
+    // at a tenth (2 world units per step) the close convergences that loop pulls
+    // to moved in visible jumps. See renderer.h's note on set_stereo_config.
     uint32_t convergence = static_cast<uint32_t>(std::lround(
-        get_num(dk64::configkeys::graphics::stereo_convergence) * 10.0));
+        get_num(dk64::configkeys::graphics::stereo_convergence) * 100.0));
     uint32_t hud_depth = static_cast<uint32_t>(get_num(dk64::configkeys::graphics::stereo_hud_depth));
     bool auto_conv = std::get<bool>(
         graphics_config.get_temp_option_value(dk64::configkeys::graphics::stereo_auto_convergence));
@@ -276,7 +283,7 @@ static void add_stereo_options(recomp::config::Config &config) {
         "and <recomp-color primary>Anaglyph</recomp-color> works with red/cyan glasses on any screen.<br />"
         "<recomp-color primary>LeiaSR</recomp-color> drives a Leia autostereoscopic display via lenticular weaving; "
         "requires the SR Platform service and the <recomp-color primary>D3D12</recomp-color> graphics API."
-        "<br /><br />Stereo rendering roughly doubles GPU cost, and is not compatible with MSAA.",
+        "<br /><br />Stereo rendering roughly doubles GPU cost.",
         stereo_mode_options,
         dk64::StereoMode::Off
     );
