@@ -1,0 +1,73 @@
+Built in (the 3DS): the changes only while switched on
+
+The mod replaces the beaver's function (func_global_asm_806AD54C) with
+gold beavers, a longer scare and noclip into the hole. Built into the
+patches it is the function for good, so each change from the game's own
+function (lib/dk64_decomp src/global_asm/done/code_B1F60.c) follows the
+setting: switched off, the beavers behave as in the original.
+
+--- a/src/main.c
++++ b/src/main.c
+@@ -2,6 +2,7 @@
+ #include "ultra64.h"
+ #include "enums.h"
+ #include "common_structs.h"
++#include "builtin_mods.h"
+ 
+ typedef struct Struct807FDC90 Struct807FDC90;
+ 
+@@ -63,19 +64,22 @@
+ 
+ #define SCARE_DURATION 20
+ 
++// Built in (the 3DS): every change from the game's own function is behind
++// `fixed`, so with the mod switched off this is the original.
+ RECOMP_PATCH void func_global_asm_806AD54C(void) {
+     f32 dx, dz;
+     Actor *klaptrap;
+     s32 angleSign;
++    const s32 fixed = builtin_mod_on(BUILTIN_MOD_FIXED_BEAVER_BOTHER);
+ 
+     initializeCharacterSpawnerActor();
+     if (ACTOR_UNINITIALIZED(gCurrentActorPointer)) {
+         func_global_asm_80724CA4(2, 1);
+         func_global_asm_8072B79C(0x1F8, 0x1F8, 0x1F9);
+-        D_global_asm_807FDC90->unk3A = FALSE;
++        if (fixed) D_global_asm_807FDC90->unk3A = FALSE;
+         if (current_map == MAP_BEAVER_BOTHER_EASY || current_map == MAP_BEAVER_BOTHER_NORMAL || current_map == MAP_BEAVER_BOTHER_HARD) {
+             gCurrentActorPointer->unk132 = 2;
+-            if (RandChance(0.2)) {
++            if (fixed && RandChance(0.2)) {
+                 D_global_asm_807FDC90->unk3A = TRUE;
+                 func_global_asm_80613194(gCurrentActorPointer, 0x1B); // Gold Beaver
+             }
+@@ -97,21 +101,23 @@
+                         D_global_asm_807FDC90->unk1A |= 0x8000;
+                         gCurrentActorPointer->control_state = 0x10;
+                         gCurrentActorPointer->control_state_progress = 0;
+-                        gCurrentActorPointer->noclip_byte = 0x23; // Give the beavers noclip. This should make it easier for them to go through "the wall"
+-                        D_global_asm_807FDC90->unk39 = SCARE_DURATION;
++                        if (fixed) {
++                            gCurrentActorPointer->noclip_byte = 0x23; // Give the beavers noclip. This should make it easier for them to go through "the wall"
++                            D_global_asm_807FDC90->unk39 = SCARE_DURATION;
++                        }
+                     }
+                 }
+-            } else if (D_global_asm_807FDC90->unk39 == 0) {
++            } else if (!fixed || D_global_asm_807FDC90->unk39 == 0) {
+                 // Not Snapping
+                 D_global_asm_807FDC90->unk1A &= ~0x8000;
+-                gCurrentActorPointer->noclip_byte = 0x24; // Remove noclip from the beavers
++                if (fixed) gCurrentActorPointer->noclip_byte = 0x24; // Remove noclip from the beavers
+             }
+-            if (D_global_asm_807FDC90->unk39 > 0) {
++            if (fixed && D_global_asm_807FDC90->unk39 > 0) {
+                 D_global_asm_807FDC90->unk39--;
+             }
+         }
+     }
+-    if (D_global_asm_807FDC90->unk3A) {
++    if (fixed && D_global_asm_807FDC90->unk3A) {
+         // Is Gold Beaver
+         if ((gCurrentActorPointer->unk132 == 2) && (gCurrentActorPointer->control_state != 0x36)) {
+             if (gCurrentActorPointer->control_state == 0x40) { // Has been killed

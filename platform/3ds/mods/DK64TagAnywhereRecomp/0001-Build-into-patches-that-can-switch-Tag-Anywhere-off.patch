@@ -1,0 +1,48 @@
+--- a/src/patches.c
++++ b/src/patches.c
+@@ -285,7 +285,9 @@
+ }
+ 
+ // Instrument
+-void func_global_asm_806E52D0(void) {
++// Not a patch and never called in the mod: renamed so that a patch build in
++// strict mode does not take it for an unmarked replacement of the game's.
++void tag_anywhere_unused_806E52D0(void) {
+     u8 temp_v1;
+     u32 temp_v0;
+ 
+@@ -353,13 +355,32 @@
+ void func_global_asm_806A664C(f32 arg0);
+ void func_global_asm_806A5EAC(void *arg0, void *sprite, f32 scale);
+ extern SpriteData D_global_asm_80720EBC;
++extern SpriteData D_global_asm_80720EE8;
++extern SpriteData D_global_asm_80720F14;
++extern SpriteData D_global_asm_80720F40;
++extern SpriteData D_global_asm_80720F6C;
++extern Actor *gPlayerPointer;
++// Built into a game that can switch Tag Anywhere off: while off, the
++// vanilla sprite for the kong being played.
++int tag_anywhere_enabled(void);
+ 
+ RECOMP_PATCH void func_global_asm_806A6574(void) {
+     void *aaD;
++    void *sprite;
+ 
+     aaD = gCurrentActorPointer->additional_actor_data;
+     func_global_asm_806A664C(4.5f);
+     if (ACTOR_UNINITIALIZED(gCurrentActorPointer)) {
+-        func_global_asm_806A5EAC(aaD, &D_global_asm_80720EBC, 1.0f);
++        sprite = &D_global_asm_80720EBC;
++        if (!tag_anywhere_enabled()) {
++            switch (gPlayerPointer->unk58) {
++                case ACTOR_DIDDY: sprite = &D_global_asm_80720EE8; break;
++                case ACTOR_DK: sprite = &D_global_asm_80720F40; break;
++                case ACTOR_LANKY: sprite = &D_global_asm_80720F14; break;
++                case ACTOR_TINY: sprite = &D_global_asm_80720F6C; break;
++                default: break;
++            }
++        }
++        func_global_asm_806A5EAC(aaD, sprite, 1.0f);
+     }
+ }
+\ No newline at end of file
