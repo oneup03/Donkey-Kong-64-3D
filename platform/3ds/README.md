@@ -36,6 +36,11 @@ SELECT opens the settings on the bottom screen: 3D depth, controls,
 camera, gyro aiming, the game options and the built-in mods. With Tag
 Anywhere on, D-pad left/right switch kongs instead.
 
+Holding SELECT for a second saves a screenshot to
+`sdmc:/3ds/DK64/screenshots/`: both eyes when 3D is on, and the touch
+screen, as BMPs. Use it rather than Luma's Rosalina screenshot, which has
+frozen the console with this game running.
+
 ## Performance
 
 A New 3DS runs the game at its full 30 fps. The Game page's CPU speed
