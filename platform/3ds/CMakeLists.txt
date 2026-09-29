@@ -61,7 +61,7 @@ add_3dsx(DK64Recompiled3DS TITLE "${DK64_TITLE}" DESCRIPTION "${DK64_DESCRIPTION
          ICON "${CMAKE_CURRENT_LIST_DIR}/icon.png")
 include("${RT64_3DS_DIR}/cmake/Cia.cmake")
 # The banner: a bunch of golden bananas and DK's "Ooh, banana!", made by
-# the tools in a separate repository (dk64-3ds-banner); only their output is here.
+# the tools in a separate repository (3ds-banner-tools); only their output is here.
 add_cia(DK64Recompiled3DS RSF "${RT64_3DS_DIR}/cia/template.rsf" TITLE "${DK64_TITLE}" PRODUCT "DK64-3DS" UNIQUEID 0xF534E
         ICON "${CMAKE_CURRENT_LIST_DIR}/icon.png" DESCRIPTION "${DK64_DESCRIPTION}"
         BANNER_CGFX "${CMAKE_CURRENT_LIST_DIR}/cia/banner.cgfx" BANNER_WAV "${CMAKE_CURRENT_LIST_DIR}/cia/banner.wav")
