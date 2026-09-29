@@ -1,4 +1,5 @@
 #include "common_structs.h"
+#include "graphics.h"
 
 RECOMP_DECLARE_EVENT(recomp_on_music_bin_load(s32 song, s32 bank, u8 *bin));
 
@@ -607,6 +608,10 @@ RECOMP_PATCH u16 *func_global_asm_806FFF88(void) {
     temp_v0 = &fairy_photo[0];
     sp34 = temp_v0;
     var_s1 = temp_v0;
+    // @recomp: The loop below copies the 160x128 pixels at (80, 56) of the
+    // framebuffer; have the host put the picture there first (the 3DS renders
+    // on its GPU and does not otherwise write the framebuffer).
+    recomp_fb_readback((u32)D_global_asm_80744470[D_global_asm_807444FC], (80 << 16) | 56, (160 << 16) | 128, D_global_asm_80744490);
     var_s2 = (s32)((s32)((s32)D_global_asm_80744470[D_global_asm_807444FC] + (var_s3 * (16 * D_global_asm_80744490))) + 0xA0);
     var_s3 = 0;
     do {

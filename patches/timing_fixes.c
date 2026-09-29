@@ -229,6 +229,10 @@ extern OSScTask* D_global_asm_807F04E0;
 extern void func_global_asm_8060FAA4(OSMesgQueue *arg0, OSMesg arg1, s32 arg2);
 extern OSTimer D_global_asm_807F0540;
 extern void func_global_asm_8060F928(Struct131B0_2 *arg0, Struct131B0_1 *arg1); 
+#ifdef DK64_3DS
+extern void func_global_asm_8060F960(Struct131B0_2* arg0, s32 arg1);
+extern OSMesgQueue D_global_asm_8076D6D0;   // the audio thread's task-done queue
+#endif
 
 static s16 D_global_asm_80746858_copy = 0;
 
@@ -324,6 +328,21 @@ RECOMP_PATCH void func_global_asm_8060F254(Struct131B0_2* arg0) {
             osSendMesg((OSMesgQueue* ) temp_v0_3->unk4, (void* )0x29A, 0);
         }  
     }
+
+#ifdef DK64_3DS
+    /*
+        @recomp: The audio thread asks the scheduler to start a queued audio task (0x29E) and then
+        waits for that task's completion. Under heavy load a start request can be lost, leaving the
+        audio thread waiting forever on a task nobody starts (the RSP idle, audio tasks queued, no
+        completion pending): the audio engine dies. That state can only be a deadlock, so start the
+        queued audio task here. Seen on the 3DS, whose audio task runs on a slower CPU; the desktop
+        build leaves the scheduler as it was.
+    */
+    if ((arg0->unk274 == NULL) && (arg0->unk264 != NULL) &&
+        (D_global_asm_8076D6D0.validCount == 0) && (D_global_asm_8076D6D0.mtqueue != NULL)) {
+        func_global_asm_8060F960(arg0, 0);
+    }
+#endif
 }
 
 extern u8  D_global_asm_807444FC;

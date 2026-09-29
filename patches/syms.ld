@@ -77,3 +77,5 @@ osCreateThread_recomp = 0x8F00014C;
 osStartThread_recomp = 0x8F000150;
 recomp_stereo_set_low_convergence_scene = 0x8F000154;
 recomp_stereo_set_first_person = 0x8F000158;
+recomp_fb_readback = 0x8F00015C;
+recomp_get_builtin_mods = 0x8F000160;
