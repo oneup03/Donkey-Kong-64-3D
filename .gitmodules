@@ -20,3 +20,34 @@
 	path = lib/SR-lib
 	url = https://github.com/bo3b/SR-lib.git
 	branch = api_expansion
+[submodule "lib/DK64TagAnywhereRecomp"]
+	path = lib/mods/DK64TagAnywhereRecomp
+	url = https://github.com/Killklli/DK64TagAnywhereRecomp.git
+	update = none
+[submodule "lib/rt64-3ds"]
+	path = lib/rt64-3ds
+	url = https://github.com/oneup03/rt64-3ds.git
+[submodule "lib/mods/RecompNoCompanyCoins"]
+	path = lib/mods/RecompNoCompanyCoins
+	url = https://github.com/theballaam96/RecompNoCompanyCoins.git
+	update = none
+[submodule "lib/mods/RecompAutocompleteBonuses"]
+	path = lib/mods/RecompAutocompleteBonuses
+	url = https://github.com/theballaam96/RecompAutocompleteBonuses.git
+	update = none
+[submodule "lib/mods/RecompEasierBeetle"]
+	path = lib/mods/RecompEasierBeetle
+	url = https://github.com/theballaam96/RecompEasierBeetle.git
+	update = none
+[submodule "lib/mods/RecompFixedBeaverBother"]
+	path = lib/mods/RecompFixedBeaverBother
+	url = https://github.com/theballaam96/RecompFixedBeaverBother.git
+	update = none
+[submodule "lib/mods/RecompSlowShoe"]
+	path = lib/mods/RecompSlowShoe
+	url = https://github.com/theballaam96/RecompSlowShoe.git
+	update = none
+[submodule "lib/mods/RecompSlowDKPhase"]
+	path = lib/mods/RecompSlowDKPhase
+	url = https://github.com/theballaam96/RecompSlowDKPhase.git
+	update = none

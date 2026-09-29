@@ -1,0 +1,36 @@
+Built in (the 3DS): the health cap only while switched on
+
+The mod replaces func_global_asm_806C9974 to cap the pending health change
+at 12 (many Golden Bananas spawning at once overflowed it). Built into the
+patches it is the function for good, so the cap follows the setting and
+the function is the game's own while the mod is off.
+
+--- a/src/main.c
++++ b/src/main.c
+@@ -3,6 +3,7 @@
+ #include "enums.h"
+ #include "common_structs.h"
+ #include "recompconfig.h"
++#include "builtin_mods.h"
+ 
+ typedef struct {
+     Actor* unk0;
+@@ -156,6 +157,7 @@
+ extern u8 cc_number_of_players;
+ 
+ // When many GBs spawn simultaneously, it can result in the damage overflowing, giving the player 0 health
++// Built in (the 3DS): the cap applies while the mod is switched on; off, this is the game's own function.
+ RECOMP_PATCH s32 func_global_asm_806C9974(u8 playerIndex, s8 arg1) {
+     CharacterChange *temp2 = &character_change_array[playerIndex];
+     PlayerProgress *temp = &D_global_asm_807FC950[playerIndex];
+@@ -169,7 +171,9 @@
+     }
+     if (!(D_global_asm_807FBB64 & 0x800)) {
+         temp->unk2FD += arg1;
+-        temp->unk2FD = MIN(temp->unk2FD, 12); // Always ensure this never goes above 12
++        if (builtin_mod_on(BUILTIN_MOD_AUTOCOMPLETE_BONUS)) {
++            temp->unk2FD = MIN(temp->unk2FD, 12); // Always ensure this never goes above 12
++        }
+     }
+     if ((temp->health + temp->unk2FD) <= 0) {
+         temp2->unk2DC.unk6 |= 0xC0;

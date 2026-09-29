@@ -75,3 +75,19 @@ gamecontrollerdb.txt
 # Just linux things
 build.log
 DK64Recompiled
+
+# 3DS build (platform/3ds/Makefile): host tools, the cross build and its
+# outputs if copied elsewhere
+build-host/
+build-3ds/
+*.3dsx
+*.cia
+
+# 3DS debugging leftovers: renderer captures copied off the SD card (the
+# RDRAM dumps hold game data), logs and emulator test runs
+azahar-out/
+*gfx_task.bin
+*gfx_snapshot.raw
+*.ppm
+/*log.txt
+
