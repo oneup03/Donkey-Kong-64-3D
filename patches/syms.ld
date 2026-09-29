@@ -80,3 +80,5 @@ recomp_get_gyro_inverted_axes = 0x8F000158;
 recomp_get_mouse_inverted_axes = 0x8F00015C;
 recomp_stereo_set_low_convergence_scene = 0x8F000160;
 recomp_stereo_set_first_person = 0x8F000164;
+recomp_fb_readback = 0x8F000168;
+recomp_get_builtin_mods = 0x8F00016C;

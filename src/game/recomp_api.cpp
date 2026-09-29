@@ -132,6 +132,18 @@ extern "C" void recomp_stereo_set_first_person(uint8_t* rdram, recomp_context* c
     recompui::renderer::set_stereo_runtime_first_person(active != 0);
 }
 
+// The 3DS renders on its GPU and fills the framebuffer on request for the
+// fairy camera; RT64 keeps RDRAM's framebuffers up to date itself.
+extern "C" void recomp_fb_readback(uint8_t* rdram, recomp_context* ctx) {
+    (void)rdram; (void)ctx;
+}
+
+// Mods are built into the patches only where there is no mod loader (the
+// 3DS); here they are mods.
+extern "C" void recomp_get_builtin_mods(uint8_t* rdram, recomp_context* ctx) {
+    _return(ctx, 0u);
+}
+
 extern "C" void recomp_get_story_skip(uint8_t* rdram, recomp_context* ctx) {
     switch (dk64::get_story_skip()) {
         case dk64::StorySkipMode::Off:

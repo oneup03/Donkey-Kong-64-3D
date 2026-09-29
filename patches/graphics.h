@@ -19,6 +19,12 @@ DECLARE_FUNC(void, recomp_stereo_set_low_convergence_scene, s32 active);
 // which draw reticle-shaped quads near the middle of the screen - out of it.
 DECLARE_FUNC(void, recomp_stereo_set_first_person, s32 active);
 
+// Fill a rectangle of an RGBA16 framebuffer in RDRAM with what is on screen,
+// for game code that reads pixels (the fairy camera). xy = x << 16 | y and
+// wh = w << 16 | h in framebuffer pixels. A no-op where the renderer already
+// keeps RDRAM up to date (the desktop); the 3DS renders on its GPU only.
+DECLARE_FUNC(void, recomp_fb_readback, u32 fb, s32 xy, s32 wh, s32 fb_width);
+
 // DECLARE_FUNC(float, recomp_get_aspect_ratio, float);
 // DECLARE_FUNC(s32, recomp_get_target_framerate, s32);
 // DECLARE_FUNC(s32, recomp_high_precision_fb_enabled);
