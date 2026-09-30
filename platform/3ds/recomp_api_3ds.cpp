@@ -138,8 +138,11 @@ extern "C" void recomp_get_sfx_volume(uint8_t* rdram, recomp_context* ctx) { (vo
 // A floor under the game's draw distances, in world units (percent x 50).
 extern "C" void recomp_get_draw_distance(uint8_t* rdram, recomp_context* ctx) { (void)rdram; _return(ctx, (float)g_dk64_draw_distance * 50.0f); }
 
+// The desktop scales convergence down in the scenes stereo_runtime.c flags
+// (menus, cutscenes, minigames). On the 3DS convergence is depth-driven only
+// (rt64-3ds auto convergence), so the flag is ignored.
 extern "C" void recomp_stereo_set_low_convergence_scene(uint8_t* rdram, recomp_context* ctx) {
-    rt64_3ds::set_low_convergence_scene(_arg<0, s32>(rdram, ctx) != 0);
+    (void)rdram; (void)ctx;
 }
 
 extern "C" void recomp_stereo_set_first_person(uint8_t* rdram, recomp_context* ctx) {
