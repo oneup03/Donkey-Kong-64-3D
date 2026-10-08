@@ -192,6 +192,24 @@ int main(int argc, char** argv) {
     desc.render.hud_on_bottom_supported = true;
     desc.render.depth_to_rdram = true;      // the camera's wall avoidance samples the depth buffer
     desc.render.depthless_world_is_hud = true;   // the fairy-camera film card: HUD depth
+    // The patches tag the camera, actors and bones for RT64's high frame
+    // rate (patches_matrix.c, patches_interpolation.c): offer "60 interp." on
+    // the Frame rate row, an interpolated frame between each two of the
+    // game's while it runs at 30. The in-betweens draw into eye targets of
+    // their own (double_eyes, 1125 KB of VRAM), which also keeps the depth
+    // the camera reads back the game frame's; without them no list could
+    // have an in-between. settings.ini's gpu_double_eyes switches it.
+    desc.render.frame_interpolation = true;
+    desc.render.double_eyes = true;
+    // The GPU's share of a frame, as Banjo and Goemon have it (settings.ini
+    // gpu_depth16 / gpu_textures16 / gpu_fill_clear for A/B tests): 16-bit
+    // eye depth, as fine as the N64's own out to ~600 units, which is what
+    // the wall avoidance reads, and 750 KB more VRAM for textures; I/IA
+    // textures as LA8, the same texels at half the size; and the leading
+    // full-screen fill as the clear, which the interiors' frames have.
+    desc.render.eye_depth16 = true;
+    desc.render.intensity_textures16 = true;
+    desc.render.fill_clear = true;
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (see rt64-3ds naudio_hle.cpp)
     // The Audio engine row's DSP mode (rt64-3ds dsp_synth.h): the voices
     // play on DSP channels, as us.toml's n_alSyn* hooks report them, and the
