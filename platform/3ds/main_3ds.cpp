@@ -201,6 +201,11 @@ int main(int argc, char** argv) {
     // have an in-between. settings.ini's gpu_double_eyes switches it.
     desc.render.frame_interpolation = true;
     desc.render.double_eyes = true;
+    // The game waits for each list to be drawn before its next frame: it
+    // hears that once the last frame's depth is in RDRAM (for the camera),
+    // not after the renderer's in-betweens and waits for the screen, which
+    // in heavy scenes made it miss retraces (50 ms frames).
+    desc.render.early_drawn = true;
     // The GPU's share of a frame, as Banjo and Goemon have it (settings.ini
     // gpu_depth16 / gpu_textures16 / gpu_fill_clear for A/B tests): 16-bit
     // eye depth, as fine as the N64's own out to ~600 units, which is what
