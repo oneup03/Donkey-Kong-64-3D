@@ -193,6 +193,19 @@ int main(int argc, char** argv) {
     desc.render.depth_to_rdram = true;      // the camera's wall avoidance samples the depth buffer
     desc.render.depthless_world_is_hud = true;   // the fairy-camera film card: HUD depth
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (see rt64-3ds naudio_hle.cpp)
+    // The Audio engine row's DSP mode (rt64-3ds dsp_synth.h): the voices
+    // play on DSP channels, as us.toml's n_alSyn* hooks report them, and the
+    // audio task and its command list are skipped. n_syn (the synthesizer's
+    // pointer) at 0x807563E4, the stock n_audio layout; StartVoiceParams has
+    // three more arguments before its ramp time (sp+36); the effect has
+    // DK64's own layout, and this microcode leaves it unfiltered; the sound
+    // modes (surround, mono, headphones) at 0x807FF0F0 move pan.
+    desc.synth = recomp3ds::SynthFlavor::NAudio;
+    desc.synth.synth_global = 0x807563E4;
+    desc.synth.start_t_stack = 36;
+    desc.synth.fx = recomp3ds::SynthFx::Dk64;
+    desc.synth.fx_lowpass = false;
+    desc.synth.sound_modes = 0x807FF0F0;
     desc.button_map = kButtons;
     desc.button_map_count = sizeof(kButtons) / sizeof(kButtons[0]);
     desc.menu_options = kOptions;
