@@ -144,6 +144,12 @@ extern "C" void recomp_get_builtin_mods(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, 0u);
 }
 
+// Particle bursts are thinned only on the 3DS (patches/particles_3ds.c);
+// here every particle is drawn.
+extern "C" void recomp_get_particle_divisor(uint8_t* rdram, recomp_context* ctx) {
+    _return<s32>(ctx, 1);
+}
+
 extern "C" void recomp_get_story_skip(uint8_t* rdram, recomp_context* ctx) {
     switch (dk64::get_story_skip()) {
         case dk64::StorySkipMode::Off:
