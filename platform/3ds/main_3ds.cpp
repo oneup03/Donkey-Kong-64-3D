@@ -19,7 +19,7 @@ gpr get_entrypoint_address();
 extern RspUcodeFunc n_aspMain;
 // recomp_api_3ds.cpp
 extern int g_dk64_camera_type, g_dk64_analog_cam_sensitivity, g_dk64_camera_invert, g_dk64_aim_invert,
-           g_dk64_swim_invert, g_dk64_gyro_aim, g_dk64_story_skip, g_dk64_lightning, g_dk64_draw_distance,
+           g_dk64_swim_invert, g_dk64_gyro_aim, g_dk64_story_skip, g_dk64_lightning, g_dk64_draw_distance, g_dk64_particles,
            g_dk64_music_volume, g_dk64_sfx_volume, g_dk64_tag_anywhere,
            g_dk64_no_company_coins, g_dk64_autocomplete_bonuses, g_dk64_easier_beetle,
            g_dk64_fixed_beaver_bother, g_dk64_slow_shoe, g_dk64_slow_dk_phase;
@@ -60,6 +60,7 @@ const char* const kInvertNames[] = { "None", "X", "Y", "Both" };
 const char* const kStorySkipNames[] = { "Off", "Intro only", "On" };
 const char* const kLightningNames[] = { "Off", "Reduced", "Vanilla" };
 const char* const kOffOnNames[] = { "Off", "On" };
+const char* const kParticleNames[] = { "Full", "Half", "Quarter" };
 // The desktop's options, on the 3DS menu's pages (defaults as on the
 // desktop, except the camera, Better Free here, and gyro aim, on here).
 const MenuOption kOptions[] = {
@@ -72,6 +73,10 @@ const MenuOption kOptions[] = {
     { "story_skip", "Story skip", 0, 2, &g_dk64_story_skip, kStorySkipNames, nullptr, PageGame },
     { "lightning", "Lightning", 0, 2, &g_dk64_lightning, kLightningNames, nullptr, PageGame },
     { "draw_distance", "Draw distance", 0, 100, &g_dk64_draw_distance, nullptr, nullptr, PageGame, 10, "%", "Vanilla" },
+    // Bursts of particle sprites thinned to one in 1, 2 or 4
+    // (patches/particles_3ds.c): each is a draw of its own, which an Old 3DS
+    // can't afford by the hundred.
+    { "particles", "Particles", 0, 2, &g_dk64_particles, kParticleNames, nullptr, PageGame },
     { "music_volume", "Music volume", 0, 100, &g_dk64_music_volume, nullptr, nullptr, PageGame, 5, "%" },
     { "sfx_volume", "SFX volume", 0, 100, &g_dk64_sfx_volume, nullptr, nullptr, PageGame, 5, "%" },
     // The Mods page: the mods in lib/mods, built into the patches.
@@ -98,10 +103,13 @@ const MenuOption kOptions[] = {
 const MenuDefault kDefaults[] = {
     { "separation", 50 },               // 3D depth
     { "convergence_tenths", 100 },      // 10.0
-    { "stereo_ghost_contrast", 80 },    // percent
+    { "stereo_ghost_contrast", 100 },   // percent: 100 with the 0% floor is off (a full-screen pass an eye less)
+    { "frame_cap", 2 },                 // 60 interp. (old3ds_frame_cap on an Old 3DS)
     { "stick_deadzone", 15 },           // percent
     { "cstick_deadzone", 20 },          // percent
     { "cstick_up", 0 },                 // first person from X (C-Up) only
+    // A quarter of each particle burst on an Old 3DS (the Particles row).
+    { "particles", 2, MenuDefault::Old3dsOnly },
 };
 
 RspUcodeFunc* get_rsp_microcode(const OSTask* task) {
@@ -198,7 +206,9 @@ int main(int argc, char** argv) {
     // game's while it runs at 30. The in-betweens draw into eye targets of
     // their own (double_eyes, 1125 KB of VRAM), which also keeps the depth
     // the camera reads back the game frame's; without them no list could
-    // have an in-between. settings.ini's gpu_double_eyes switches it.
+    // have an in-between. rt64-3ds turns them on by default on a New 3DS
+    // only, as an Old 3DS starts at the game's rate (old3ds_frame_cap):
+    // "60 interp." there also takes gpu_double_eyes=1 in settings.ini.
     desc.render.frame_interpolation = true;
     desc.render.double_eyes = true;
     // The game waits for each list to be drawn before its next frame: it
@@ -206,8 +216,7 @@ int main(int argc, char** argv) {
     // not after the renderer's in-betweens and waits for the screen, which
     // in heavy scenes made it miss retraces (50 ms frames).
     desc.render.early_drawn = true;
-    // The GPU's share of a frame, as Banjo and Goemon have it (settings.ini
-    // gpu_depth16 / gpu_textures16 / gpu_fill_clear for A/B tests): 16-bit
+    // The GPU's share of a frame, as Banjo and Goemon have it: 16-bit
     // eye depth, as fine as the N64's own out to ~600 units, which is what
     // the wall avoidance reads, and 750 KB more VRAM for textures; I/IA
     // textures as LA8, the same texels at half the size; and the leading
@@ -215,6 +224,16 @@ int main(int argc, char** argv) {
     desc.render.eye_depth16 = true;
     desc.render.intensity_textures16 = true;
     desc.render.fill_clear = true;
+    // The game's own level of detail (gSPBranchLessZ's far models at a
+    // distance), as the N64 draws it and as Banjo keeps it: the desktop
+    // frontends force the near model everywhere, which the log showed as
+    // every one of ~900 branches a window taken.
+    desc.render.force_lod_branch = false;
+    // The camera's depth buffer written every other game frame on an Old
+    // 3DS: the fill of the 320x240 buffer costs the renderer's core several
+    // ms a frame there, and the camera's and the sun's tests read a depth a
+    // frame old meanwhile.
+    desc.render.depth_to_rdram_every_old3ds = 2;
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (see rt64-3ds naudio_hle.cpp)
     // The Audio engine row's DSP mode (rt64-3ds dsp_synth.h): the voices
     // play on DSP channels, as us.toml's n_alSyn* hooks report them, and the
@@ -229,12 +248,17 @@ int main(int argc, char** argv) {
     desc.synth.fx = recomp3ds::SynthFx::Dk64;
     desc.synth.fx_lowpass = false;
     desc.synth.sound_modes = 0x807FF0F0;
+    // With two cores (an Old 3DS) the game stays on core 1 and the renderer,
+    // audio and synth take core 0 (two_cores_game_on_core0 left false, the
+    // Cores row's "2, game on 1"): the cores' loads at the Old clock favoured
+    // it, unlike Banjo's.
     desc.button_map = kButtons;
     desc.button_map_count = sizeof(kButtons) / sizeof(kButtons[0]);
     desc.menu_options = kOptions;
     desc.menu_option_count = sizeof(kOptions) / sizeof(kOptions[0]);
     desc.menu_defaults = kDefaults;
     desc.menu_default_count = sizeof(kDefaults) / sizeof(kDefaults[0]);
+    desc.old3ds_frame_cap = 0;          // the game's own rate on an Old 3DS
 #ifdef DK64_NULL_RENDERER
     desc.null_renderer = true;
 #endif

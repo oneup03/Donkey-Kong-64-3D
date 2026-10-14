@@ -55,8 +55,8 @@ target_link_libraries(DK64Recompiled3DS PRIVATE
     recomp_3ds rt64_3ds RecompiledPatches RecompiledFuncs ultramodern librecomp citro3d ctru m)
 target_link_options(DK64Recompiled3DS PRIVATE "-Wl,-Map,${CMAKE_CURRENT_BINARY_DIR}/DK64Recompiled3DS.map")
 
-set(DK64_TITLE "DK64 ReKongpiled")
-set(DK64_DESCRIPTION "Donkey Kong 64 Recompiled for New 3DS")
+set(DK64_TITLE "DK64: ReKongpiled")
+set(DK64_DESCRIPTION "Donkey Kong 64: ReKongpiled 3D")
 add_3dsx(DK64Recompiled3DS TITLE "${DK64_TITLE}" DESCRIPTION "${DK64_DESCRIPTION}"
          ICON "${CMAKE_CURRENT_LIST_DIR}/icon.png")
 include("${RT64_3DS_DIR}/cmake/Cia.cmake")

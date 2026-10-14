@@ -407,6 +407,16 @@ extern Mtx D_2000180;
 Gfx* func_global_asm_8062CA70(Gfx* dl, s32 arg1, s32 arg2, f32 arg3, f32 arg4, f32 arg5, s32 arg6);
 
 extern s32 func_global_asm_80626F8C(f32 arg0, f32 arg1, f32 arg2, f32 *arg3, f32 *arg4, s32 arg5, f32 arg6, s32 arg7);
+#ifdef DK64_3DS
+// The 3DS shows this many N64 units beyond each side of the 320-wide frame
+// (the 5:3 top screen at the frame's scale: (400 - 320) / 2), so the
+// original culling can stay on, widened to the screen, as Banjo's 3DS
+// build keeps its own: drawing everything, as the desktop does, costs the
+// console too much (rt64-3ds then culls each object's list at the RSP's
+// gSPCullDisplayList, but the game has built it by then).
+#define DK64_3DS_WIDE_MARGIN 40
+#endif
+
 //@recomp: Seems to be used for the culling of many objects, including actors and props
 RECOMP_PATCH s32 func_global_asm_80658E8C(f32 arg0, f32 arg1, f32 arg2, u8 arg3, u8 arg4) {
     f32 sp44;
@@ -450,12 +460,24 @@ RECOMP_PATCH s32 func_global_asm_80658E8C(f32 arg0, f32 arg1, f32 arg2, u8 arg3,
             var_a2 = 0x82;
         }
     }
+#ifdef DK64_3DS
+    // @recomp 3DS: the original x bound checks too, each edge pushed out by
+    // the margin the wide screen shows (DK64_3DS_WIDE_MARGIN), so an object
+    // off the wide screen is culled as the original culls one off the 4:3 frame.
+    if ((sp3E < ((D_global_asm_807F7358 - var_v1) - arg3 - DK64_3DS_WIDE_MARGIN)) || ((D_global_asm_807F735C + var_a0 + arg3 + DK64_3DS_WIDE_MARGIN) < sp3E) ||
+        (sp3C < ((D_global_asm_807F735A - var_a1) - arg4)) || ((((D_global_asm_807F735E + var_a2 + arg4) < sp3C)))) {
+        return 1;
+    } else {
+        return 0;
+    }
+#else
     // @recomp: Remove x bound checks
     if ((sp3C < ((D_global_asm_807F735A - var_a1) - arg4)) || ((((D_global_asm_807F735E + var_a2 + arg4) < sp3C)))) {
         return 1;
     } else {
         return 0;
     }
+#endif
 }
 
 
@@ -992,7 +1014,16 @@ RECOMP_PATCH s32 func_global_asm_8062DBDC(s16 arg0, s16 arg1, s16 arg2, s16 arg3
                         if (macro_8062DBDC_IF(arg3, arg1, arg5) < 0.0) {
                             if (macro_8062DBDC_IF(arg3, arg4, arg2) < 0.0) {
                                 if (macro_8062DBDC_IF(arg3, arg4, arg5) < 0.0) {
+#ifdef DK64_3DS
+                                    // @recomp 3DS: the original: a chunk whose eight corners all lie behind
+                                    // the camera's plane (D_global_asm_807F5E50: through the eye, facing the
+                                    // target) is not drawn, whatever the field of view. The frustum-plane tests
+                                    // below still pass everything, as on the desktop: those planes are the
+                                    // 4:3 ones (func_global_asm_8062AD28), and widening them is still to do.
+                                    return FALSE;
+#else
                                     return TRUE;  //@recomp: Was false
+#endif
                                  }
                             }
                         }

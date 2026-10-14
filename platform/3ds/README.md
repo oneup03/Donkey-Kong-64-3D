@@ -7,7 +7,7 @@ stereoscopic 3D. The renderer and platform layer are
 ## Installing
 
 - **CIA** (`DK64Recompiled3D-3ds-<commit>.cia`): install it with FBI or another
-  CIA installer. It appears on the HOME Menu as "DK64 ReKongpiled".
+  CIA installer. It appears on the HOME Menu as "DK64: ReKongpiled".
 - **.3dsx** (`DK64Recompiled3D-3ds-<commit>.zip`): extract it to the root of
   the SD card and start `3ds/DK64/DK64.3dsx` from the Homebrew
   Launcher.
@@ -43,10 +43,29 @@ frozen the console with this game running.
 
 ## Performance
 
-A New 3DS runs the game at its full 30 fps. The Game page's CPU speed
-setting can drop to the Old 3DS clock to see how an Old 3DS would fare;
-there, switching Audio off (also on the Game page) saves the CPU time the
-game's audio takes and lifts the frame rate to about 20 fps.
+A New 3DS runs the game at its full 30 fps and, by default, draws an
+interpolated frame between each two of the game's (the Game page's Frame
+rate: 60 interp.). The heaviest scenes drop back toward 30. An Old 3DS
+defaults to the game's own frame rate, as it can't afford the frames in
+between. `dbg_old_clock=1` in `settings.ini` drops a New 3DS to the Old
+3DS clock to see how an Old 3DS would fare.
+
+The game's own culling stays on here where the desktop build draws
+everything for widescreen: objects off the 5:3 screen (the test's bounds
+pushed out by the margin the screen shows beyond the 4:3 frame) and map
+chunks behind the camera are not drawn, and the RSP's own per-object
+cull is honoured by the renderer, which also drops triangles beyond the
+screen's edges before they reach the GPU. The game's own level of detail
+is kept (far objects use their far models, as on the N64), and on an Old
+3DS the camera's depth buffer is written every other frame.
+
+The Game page's **Particles** row (Full, Half, Quarter; an Old 3DS starts
+at Quarter) thins bursts of particle sprites, the sparkles, dust, splashes
+and explosions: of a burst, the first is drawn and then one in two or
+four. Each sprite is a draw of its own for the renderer, which is what an
+Old 3DS cannot afford by the hundred. Sprites spawned singly, HUD sprites
+and sprites attached to characters are never thinned, and the thinned
+ones still exist for the game's own logic; only their drawing is skipped.
 
 An Old 3DS gives a game 64 MB, too little to hold the 32 MB ROM, so there
 the game reads the ROM from the SD card as it needs it; loads take a

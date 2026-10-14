@@ -91,3 +91,12 @@ azahar-out/
 *.ppm
 /*log.txt
 
+# ... and the 3DS screenshots (SELECT held, wigglegram.py), audio captures
+# and the AUDIO_WAV.TXT recording; mod files are the player's own
+screenshots/
+*.bmp
+*_wiggle.gif
+*.raw
+audio_task_*.bin
+audio.wav
+*.nrm

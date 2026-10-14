@@ -463,11 +463,23 @@ RECOMP_PATCH Struct80717D84 *func_global_asm_80714C08(void *sprite, f32 scale, A
     return sp;
 }
 
+#ifdef DK64_3DS
+s32 dk64_3ds_particle_thinned(void *def);
+void dk64_3ds_particle_mark(Struct80717D84 *sprite, s32 thinned);
+#endif
+
 RECOMP_PATCH Struct80717D84 *drawSpriteAtPosition(void* sprite, f32 scale, f32 x, f32 y, f32 z) {
     Struct80717D84 *sp;
+#ifdef DK64_3DS
+    // @recomp 3DS: the Particles row thins bursts of particle sprites (particles_3ds.c).
+    s32 thinned = dk64_3ds_particle_thinned(sprite);
+#endif
     sp = func_global_asm_80714D08(sprite, scale, x, y, z, NULL, 0, 0, 0);
     sp->sprite_index = MTXTAG_SPRITE + current_sprite_id;
     current_sprite_id++;
+#ifdef DK64_3DS
+    dk64_3ds_particle_mark(sp, thinned);
+#endif
     return sp;
 }
 
