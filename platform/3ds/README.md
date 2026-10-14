@@ -1,7 +1,8 @@
 # Nintendo 3DS build
 
-Donkey Kong 64 Recompiled for the New Nintendo 3DS and New 2DS XL, with
-stereoscopic 3D. The renderer and platform layer are
+Donkey Kong 64 Recompiled for the Nintendo 3DS family, with stereoscopic
+3D. A New 3DS or New 2DS XL is recommended; an Old 3DS or 2DS runs it, but
+slowly (see Performance). The renderer and platform layer are
 [rt64-3ds](https://github.com/oneup03/rt64-3ds) (`lib/rt64-3ds`).
 
 ## Installing
@@ -41,37 +42,43 @@ Holding SELECT for a second saves a screenshot to
 screen, as BMPs. Use it rather than Luma's Rosalina screenshot, which has
 frozen the console with this game running.
 
+## Stereo 3D
+
+The console's 3D slider turns the 3D on and sets how strong it is; with
+the slider down the game draws one image. The settings' 3D page tunes it:
+
+| Setting | What it does |
+|---|---|
+| 3D depth | The separation between the eyes at the top of the slider (default 50). Raise it for more depth, lower it if the image is hard to focus. |
+| Convergence | How far into the scene the screen's plane sits (default 10.0): things nearer than it come out of the screen, things beyond it go in. |
+| HUD depth | Where the HUD, menus and text sit (50 is on the screen's plane; higher brings them out of the screen, lower pushes them in). |
+| Auto convergence | On by default: when something comes close to the camera (a wall, a tree, a character in a close-up), the screen's plane moves nearer so it doesn't pop out too far. Convergence stays the farthest it goes. |
+| Comfort target | How far out of the screen Auto convergence lets near things come (0 by default; higher for more pop-out, lower to keep everything behind the screen). |
+| Ghost reduction: contrast, Ghost black floor | Ease ghosting (a faint double image of high-contrast edges on some screens) by softening contrast and lifting blacks. Off by default (100% and 0%). |
+
+In first person (the scope, the guns), the crosshair sits at the depth of
+whatever it is aimed at.
+
 ## Performance
 
-A New 3DS runs the game at its full 30 fps and, by default, draws an
-interpolated frame between each two of the game's (the Game page's Frame
-rate: 60 interp.). The heaviest scenes drop back toward 30. An Old 3DS
-defaults to the game's own frame rate, as it can't afford the frames in
-between. `dbg_old_clock=1` in `settings.ini` drops a New 3DS to the Old
-3DS clock to see how an Old 3DS would fare.
+**New 3DS / New 2DS XL:** holds 60 fps most of the time. The game itself
+runs at 30, and by default an interpolated frame is drawn between each two
+of its frames (the Game page's Frame rate: 60 interp.). The heaviest scenes
+drop back toward 30. Set Frame rate to Game for the original 30 fps.
 
-The game's own culling stays on here where the desktop build draws
-everything for widescreen: objects off the 5:3 screen (the test's bounds
-pushed out by the margin the screen shows beyond the 4:3 frame) and map
-chunks behind the camera are not drawn, and the RSP's own per-object
-cull is honoured by the renderer, which also drops triangles beyond the
-screen's edges before they reach the GPU. The game's own level of detail
-is kept (far objects use their far models, as on the N64), and on an Old
-3DS the camera's depth buffer is written every other frame.
+**Old 3DS / 2DS:** runs at 10-20 fps, with stuttering and the occasional
+animation glitch. It starts at the game's own frame rate, as it can't afford
+the frames in between, and with particles at Quarter. An Old 3DS gives a
+game only 64 MB, too little to hold the 32 MB ROM, so the game reads the ROM
+from the SD card as it needs it and loads take a little longer.
 
-The Game page's **Particles** row (Full, Half, Quarter; an Old 3DS starts
-at Quarter) thins bursts of particle sprites, the sparkles, dust, splashes
-and explosions: of a burst, the first is drawn and then one in two or
-four. Each sprite is a draw of its own for the renderer, which is what an
-Old 3DS cannot afford by the hundred. Sprites spawned singly, HUD sprites
-and sprites attached to characters are never thinned, and the thinned
-ones still exist for the game's own logic; only their drawing is skipped.
-
-An Old 3DS gives a game 64 MB, too little to hold the 32 MB ROM, so there
-the game reads the ROM from the SD card as it needs it; loads take a
-little longer. `rom_stream` in `settings.ini` chooses: 0 automatic (the
-SD card on an Old 3DS), 1 in memory, 2 from the SD card. A real Old 3DS
-is untested.
+To make it run on the 3DS, this build keeps a few things the desktop build
+turns off or ignores. The game's own culling stays on, widened to the
+wider screen, and far objects use their low-detail models, as on the N64.
+The Game page's **Particles** row (Full, Half, Quarter) thins bursts of
+sparkles, dust, splashes and explosions: each particle costs a draw, which
+an Old 3DS can't afford by the hundred. Only their drawing is skipped; the
+game still handles them as usual.
 
 ## Built-in mods
 
@@ -91,6 +98,12 @@ each switched on and off on the settings' Mods page:
 No coin door sets the door's flag in the save when a file starts, so the
 door stays open after switching it off. Slow shoe and Slow DK phase apply
 from the next time the fight's map loads.
+
+## AI use
+
+The 3DS port, including this build's code and documentation and the
+rt64-3ds renderer it uses, was written with the help of AI tools (Claude),
+under the developer's direction and with their testing on real consoles.
 
 ## Building
 
