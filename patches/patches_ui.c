@@ -69,6 +69,9 @@ extern Mtx identity_fixed_mtx;
 extern s32 cur_drawn_model_transform_id;
 extern s32 cur_model_transform_id_offset;
 extern u8 disable_sprite_interpolation;
+#ifdef DK64_3DS
+s32 dk64_3ds_sprite_hidden(Struct80717D84 *sprite);
+#endif
 extern u8 cur_drawn_model_skip_interpolation;
 Gfx *set_model_matrix_group(Gfx * dl, void *geo_list, u8 skip_rotation, u8 *pushed);
 Gfx *pop_model_matrix_group(Gfx *dl);
@@ -92,6 +95,12 @@ RECOMP_PATCH Gfx * func_global_asm_80715E94(Struct80717D84* sprite, Gfx *dl, s16
     if (sprite->unk38C & 0x50) {
         return dl;
     }
+#ifdef DK64_3DS
+    // @recomp 3DS: the thinned part of a particle burst (particles_3ds.c).
+    if (dk64_3ds_sprite_hidden(sprite)) {
+        return dl;
+    }
+#endif
     if ((((gPlayerPointer->control_state == 0x83) || (gPlayerPointer->control_state == 0x67)) && !(sprite->unk38C & 0x20)) || (((global_properties_bitfield & 0x100002) == 0x100002) && !(sprite->unk38C & 0x100))) {
         return dl;
     }

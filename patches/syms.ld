@@ -82,3 +82,4 @@ recomp_stereo_set_low_convergence_scene = 0x8F000160;
 recomp_stereo_set_first_person = 0x8F000164;
 recomp_fb_readback = 0x8F000168;
 recomp_get_builtin_mods = 0x8F00016C;
+recomp_get_particle_divisor = 0x8F000170;
