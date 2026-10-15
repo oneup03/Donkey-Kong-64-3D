@@ -41,7 +41,9 @@ Miscellaneous options > Dump DSP firmware. Without it the game runs silent.
 
 SELECT opens the settings on the bottom screen: 3D depth, controls,
 camera, gyro aiming, the game options and the built-in mods. With Tag
-Anywhere on, D-pad left/right switch kongs instead.
+Anywhere on, Left and Right buttons on the touch screen switch kongs, and
+the D-pad keeps its C buttons; the Controls page's Mod buttons setting puts
+them on D-pad left/right instead.
 
 Holding SELECT for a second saves a screenshot to
 `sdmc:/3ds/DK64/screenshots/`: both eyes when 3D is on, and the touch

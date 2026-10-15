@@ -35,19 +35,30 @@ const ButtonMap kButtons[] = {
     { KEY_X | KEY_DUP, N64_CUP }, { KEY_Y | KEY_DDOWN, N64_CDOWN },
     { KEY_ZL | KEY_DLEFT, N64_CLEFT }, { KEY_ZR | KEY_DRIGHT, N64_CRIGHT },
 };
-// With Tag Anywhere on, D-pad left and right are the N64 D-pad, which tags
-// backward and forward through the kongs; C-Left and C-Right stay on ZL/ZR
-// and the C-Stick.
+// Tag Anywhere reads the N64 D-pad's left and right (tag backward and
+// forward through the kongs). While it is on they are either on the touch
+// screen (the default, "Mod buttons" on the Controls page: the buttons stay
+// as they are, so an Old 3DS, with no ZL, ZR or C-Stick, keeps C-Left and
+// C-Right on the D-pad) or on D-pad left and right themselves, C-Left and
+// C-Right then on ZL/ZR and the C-Stick only.
 const ButtonMap kButtonsTag[] = {
     { KEY_A, N64_A }, { KEY_B, N64_B }, { KEY_L, N64_Z }, { KEY_R, N64_R }, { KEY_START, N64_START },
     { KEY_X | KEY_DUP, N64_CUP }, { KEY_Y | KEY_DDOWN, N64_CDOWN },
     { KEY_ZL, N64_CLEFT }, { KEY_ZR, N64_CRIGHT },
     { KEY_DLEFT, N64_DLEFT }, { KEY_DRIGHT, N64_DRIGHT },
 };
-void tag_anywhere_changed(int on) {
-    if (on) input_set_map(kButtonsTag, sizeof(kButtonsTag) / sizeof(kButtonsTag[0]));
+const char* const kModButtonNames[] = { "Touch screen", "D-pad" };
+int g_mod_buttons = 0;      // 0: on the touch screen, 1: D-pad left and right
+// The buttons for Tag Anywhere's state and "Mod buttons": at start (each
+// row's change applies its setting) and whenever either changes.
+void set_buttons() {
+    const bool tag = g_dk64_tag_anywhere != 0;
+    if (tag && g_mod_buttons == 1) input_set_map(kButtonsTag, sizeof(kButtonsTag) / sizeof(kButtonsTag[0]));
     else input_set_map(kButtons, sizeof(kButtons) / sizeof(kButtons[0]));
+    touch_pad_set(tag && g_mod_buttons == 0 ? (uint16_t)(N64_DLEFT | N64_DRIGHT) : 0);
 }
+void tag_anywhere_changed(int) { set_buttons(); }
+void mod_buttons_changed(int) { set_buttons(); }
 
 const char* const kCameraNames[] = { "Free", "Follow", "Better Free", "Analog" };
 void camera_changed(int type) {
@@ -70,6 +81,7 @@ const MenuOption kOptions[] = {
     { "camera_type", "Camera", 0, 3, &g_dk64_camera_type, kCameraNames, camera_changed, PageControls },
     { "analog_cam_speed", "Analog speed", 1, 10, &g_dk64_analog_cam_sensitivity, nullptr, nullptr, PageControls },
     { "camera_invert", "Camera invert", 0, 3, &g_dk64_camera_invert, kInvertNames, nullptr, PageControls },
+    { "mod_buttons", "Mod buttons", 0, 1, &g_mod_buttons, kModButtonNames, mod_buttons_changed, PageControls },
     { "story_skip", "Story skip", 0, 2, &g_dk64_story_skip, kStorySkipNames, nullptr, PageGame },
     { "lightning", "Lightning", 0, 2, &g_dk64_lightning, kLightningNames, nullptr, PageGame },
     { "draw_distance", "Draw distance", 0, 100, &g_dk64_draw_distance, nullptr, nullptr, PageGame, 10, "%", "Vanilla" },
