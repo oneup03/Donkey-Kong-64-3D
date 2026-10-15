@@ -530,7 +530,8 @@ jobs:
       # The zip is laid out from the SD card's root (3ds/DK64/ with the
       # .3dsx, where the player's ROM goes too); the CIA ships on its own.
       # The Homebrew Launcher lists a folder's .3dsx when it has the
-      # folder's name: DK64.3dsx.
+      # folder's name: DK64.3dsx. Both keep one name from build to build, so
+      # the README's links and the FBI QR code always reach the latest.
       - name: Package
         run: |
           set -euo pipefail
@@ -538,16 +539,16 @@ jobs:
           mkdir -p "$out"
           cp build-3ds/DK64Recompiled3DS.3dsx "$out/DK64.3dsx"
           cp platform/3ds/README.md "$out/"
-          (cd package && zip -q -r "../DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.zip" 3ds)
-          cp build-3ds/DK64Recompiled3DS.cia "DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.cia"
+          (cd package && zip -q -r ../DK64Recompiled3D-3ds.zip 3ds)
+          cp build-3ds/DK64Recompiled3DS.cia DK64Recompiled3D-3ds.cia
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-3ds
           path: |
-            DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.zip
-            DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.cia
+            DK64Recompiled3D-3ds.zip
+            DK64Recompiled3D-3ds.cia
           if-no-files-found: error
 
   publish:
@@ -568,7 +569,7 @@ jobs:
       - name: Make the 3DS CIA's QR code
         run: |
           sudo apt-get install -y --no-install-recommends qrencode
-          cia="DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.cia"
+          cia=DK64Recompiled3D-3ds.cia
           test -f "dist/$cia"
           qrencode -o dist/DK64Recompiled3D-3ds-QR.png -s 8 -m 2 \
             "https://github.com/$GITHUB_REPOSITORY/releases/download/rolling/$cia"
