@@ -8,7 +8,8 @@ slowly (see Performance). The renderer and platform layer are
 ## Installing
 
 - **CIA** (`DK64Recompiled3D-3ds-<commit>.cia`): install it with FBI or another
-  CIA installer. It appears on the HOME Menu as "DK64: ReKongpiled".
+  CIA installer. It appears on the HOME Menu as "DK64: ReKongpiled". On an
+  Old 3DS or 2DS, use the CIA (see Performance).
 - **.3dsx** (`DK64Recompiled3D-3ds-<commit>.zip`): extract it to the root of
   the SD card and start `3ds/DK64/DK64.3dsx` from the Homebrew
   Launcher.
@@ -17,6 +18,11 @@ Both need your own ROM: the US version of the N64 release of Donkey Kong 64,
 in .z64 format, at `sdmc:/3ds/DK64/DK64.z64`. The game checks the ROM's hash
 at start and deletes a file that does not match, so copy it rather than move
 it. Saves and `settings.ini` are kept in the same folder.
+
+For sound, the console's DSP firmware must be on the SD card at
+`sdmc:/3ds/dspfirm.cdc`, as for any homebrew with audio. Dump it once with
+Luma3DS: open the Rosalina menu (L + D-pad down + SELECT), then
+Miscellaneous options > Dump DSP firmware. Without it the game runs silent.
 
 ## Controls
 
@@ -66,11 +72,14 @@ runs at 30, and by default an interpolated frame is drawn between each two
 of its frames (the Game page's Frame rate: 60 interp.). The heaviest scenes
 drop back toward 30. Set Frame rate to Game for the original 30 fps.
 
-**Old 3DS / 2DS:** runs at 10-20 fps, with stuttering and the occasional
-animation glitch. It starts at the game's own frame rate, as it can't afford
-the frames in between, and with particles at Quarter. An Old 3DS gives a
-game only 64 MB, too little to hold the 32 MB ROM, so the game reads the ROM
-from the SD card as it needs it and loads take a little longer.
+**Old 3DS / 2DS:** runs at 15-20 fps, with the occasional audio glitch
+and some input delay. Install the CIA rather than running the .3dsx: an Old
+3DS gives a game only 64 MB, too little to hold the 32 MB ROM, so the game
+reads the ROM from the SD card as it needs it and keeps as much of it as it
+can in memory, and the CIA leaves it more room for that than the Homebrew
+Launcher does. Loads take a little longer than on a New 3DS. It starts at
+the game's own frame rate, as it can't afford the frames in between, and
+with particles at Quarter.
 
 To make it run on the 3DS, this build keeps a few things the desktop build
 turns off or ignores. The game's own culling stays on, widened to the

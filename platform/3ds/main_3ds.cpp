@@ -259,6 +259,18 @@ int main(int argc, char** argv) {
     desc.menu_defaults = kDefaults;
     desc.menu_default_count = sizeof(kDefaults) / sizeof(kDefaults[0]);
     desc.old3ds_frame_cap = 0;          // the game's own rate on an Old 3DS
+    // The ROM: in memory on a New 3DS, from the card on an Old 3DS, whose
+    // heap (about 39 MB) cannot hold the 32 MB ROM beside 16 MB of RDRAM.
+    desc.rom_new3ds = recomp3ds::GameDesc::RomPlace::Memory;
+    desc.rom_old3ds = recomp3ds::GameDesc::RomPlace::Stream;
+    // Streamed, it is read in 128 KB blocks
+    // with 16 MB of them: the card costs an Old 3DS about 100 ms a 128 KB
+    // read (70 ms for 32 KB). Walking around the Isles, a 4 MB cache read
+    // 139 MB in five minutes, the game waiting on the card a third of the
+    // time; 12 MB cut that to 13%. The heap peaked at 31 MB of 40 MB with
+    // 12 MB, the cache the only part that grew.
+    desc.rom_cache_mb = 16;
+    desc.rom_block_kb = 128;
 #ifdef DK64_NULL_RENDERER
     desc.null_renderer = true;
 #endif
