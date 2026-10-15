@@ -8,8 +8,9 @@ slowly (see Performance). The renderer and platform layer are
 ## Installing
 
 - **CIA** (`DK64Recompiled3D-3ds-<commit>.cia`): install it with FBI or another
-  CIA installer. It appears on the HOME Menu as "DK64: ReKongpiled". On an
-  Old 3DS or 2DS, use the CIA (see Performance).
+  CIA installer; FBI can also scan the QR code on the release page (Remote
+  Install > Scan QR Code). It appears on the HOME Menu as "DK64:
+  ReKongpiled". On an Old 3DS or 2DS, use the CIA (see Performance).
 - **.3dsx** (`DK64Recompiled3D-3ds-<commit>.zip`): extract it to the root of
   the SD card and start `3ds/DK64/DK64.3dsx` from the Homebrew
   Launcher.
@@ -17,12 +18,22 @@ slowly (see Performance). The renderer and platform layer are
 Both need your own ROM: the US version of the N64 release of Donkey Kong 64,
 in .z64 format, at `sdmc:/3ds/DK64/DK64.z64`. The game checks the ROM's hash
 at start and deletes a file that does not match, so copy it rather than move
-it. Saves and `settings.ini` are kept in the same folder.
+it.
 
 For sound, the console's DSP firmware must be on the SD card at
 `sdmc:/3ds/dspfirm.cdc`, as for any homebrew with audio. Dump it once with
 Luma3DS: open the Rosalina menu (L + D-pad down + SELECT), then
 Miscellaneous options > Dump DSP firmware. Without it the game runs silent.
+
+On the SD card, once installed:
+
+```
+sdmc:/3ds/
+  dspfirm.cdc              the DSP firmware, for sound
+  DK64/
+    DK64.3dsx              the program (not needed with the CIA installed)
+    DK64.z64               your ROM
+```
 
 ## Controls
 
