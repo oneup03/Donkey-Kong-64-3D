@@ -11,6 +11,11 @@ project(DK64Recompiled3DS LANGUAGES C CXX ASM)
 set(DK64_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")
 set(RT64_3DS_DIR "${DK64_ROOT}/lib/rt64-3ds" CACHE PATH "rt64-3ds checkout")
 set(RT64_3DS_NMR_DIR "${DK64_ROOT}/lib/N64ModernRuntime")
+# 12 MB of RDRAM rather than 16: the N64's 8, the patches (to about 9.2 MB)
+# and a 2 MB recomp heap, which DK64 never used in play (peak 0). The 4 MB
+# saved lets an Old 3DS hold the 32 MB ROM in the CIA's 80 MB mode
+# (main_3ds.cpp, rom_room_mb).
+set(RT64_3DS_MEM_SIZE_MB 12)
 add_subdirectory("${RT64_3DS_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/rt64-3ds")
 
 # The generated game code. Implicit declarations are how the generator refers
@@ -64,4 +69,5 @@ include("${RT64_3DS_DIR}/cmake/Cia.cmake")
 # the tools in a separate repository (3ds-banner-tools); only their output is here.
 add_cia(DK64Recompiled3DS RSF "${RT64_3DS_DIR}/cia/template.rsf" TITLE "${DK64_TITLE}" PRODUCT "DK64-3DS" UNIQUEID 0xF534E
         ICON "${CMAKE_CURRENT_LIST_DIR}/icon.png" DESCRIPTION "${DK64_DESCRIPTION}"
-        BANNER_CGFX "${CMAKE_CURRENT_LIST_DIR}/cia/banner.cgfx" BANNER_WAV "${CMAKE_CURRENT_LIST_DIR}/cia/banner.wav")
+        BANNER_CGFX "${CMAKE_CURRENT_LIST_DIR}/cia/banner.cgfx" BANNER_WAV "${CMAKE_CURRENT_LIST_DIR}/cia/banner.wav"
+        OLD3DS_MODE 80MB)

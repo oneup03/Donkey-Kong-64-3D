@@ -271,10 +271,15 @@ int main(int argc, char** argv) {
     desc.menu_defaults = kDefaults;
     desc.menu_default_count = sizeof(kDefaults) / sizeof(kDefaults[0]);
     desc.old3ds_frame_cap = 0;          // the game's own rate on an Old 3DS
-    // The ROM: in memory on a New 3DS, from the card on an Old 3DS, whose
-    // heap (about 39 MB) cannot hold the 32 MB ROM beside 16 MB of RDRAM.
+    // The ROM: in memory on a New 3DS. On an Old 3DS the CIA asks for the
+    // 80 MB mode (CMakeLists.txt; 96 MB crashed the HOME Menu), whose heap
+    // (about 56 MB) holds the 32 MB ROM beside 12 MB of RDRAM and the rest:
+    // the heap's peak in play was 53.4 MB with the ROM and 16 MB of RDRAM,
+    // so about 5.3 MB of rest, and 8 MB is set for room. A .3dsx in the
+    // Homebrew Launcher's 64 MB (a heap of about 39 MB) streams it.
     desc.rom_new3ds = recomp3ds::GameDesc::RomPlace::Memory;
-    desc.rom_old3ds = recomp3ds::GameDesc::RomPlace::Stream;
+    desc.rom_old3ds = recomp3ds::GameDesc::RomPlace::Auto;
+    desc.rom_room_mb = 8;
     // Streamed, it is read in 128 KB blocks
     // with 16 MB of them: the card costs an Old 3DS about 100 ms a 128 KB
     // read (70 ms for 32 KB). Walking around the Isles, a 4 MB cache read
