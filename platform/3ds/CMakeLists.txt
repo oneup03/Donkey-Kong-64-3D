@@ -24,7 +24,7 @@ add_subdirectory("${RT64_3DS_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/rt64-3ds")
 file(GLOB FUNC_SOURCES "${DK64_ROOT}/RecompiledFuncs/*.c")
 add_library(RecompiledFuncs STATIC ${FUNC_SOURCES} "${DK64_ROOT}/RecompiledFuncs/lookup.cpp")
 target_include_directories(RecompiledFuncs PRIVATE
-    "${DK64_ROOT}/RecompiledFuncs" "${CMAKE_CURRENT_LIST_DIR}"
+    "${DK64_ROOT}/RecompiledFuncs" "${CMAKE_CURRENT_LIST_DIR}" "${DK64_ROOT}/include"
     "${RT64_3DS_NMR_DIR}/N64Recomp/include" "${RT64_3DS_NMR_DIR}/ultramodern/include" "${RT64_3DS_NMR_DIR}/librecomp/include")
 target_compile_options(RecompiledFuncs PRIVATE
     -O2 -fno-strict-aliasing -w -Wno-implicit-function-declaration -Wno-error=implicit-function-declaration

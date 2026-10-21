@@ -24,19 +24,22 @@ in .z64 format, at `sdmc:/3ds/DK64/DK64.z64`. The game checks the ROM's hash
 at start and deletes a file that does not match, so copy it rather than move
 it.
 
-For sound, the console's DSP firmware must be on the SD card at
-`sdmc:/3ds/dspfirm.cdc`, as for any homebrew with audio. Dump it once with
-Luma3DS: open the Rosalina menu (L + D-pad down + SELECT), then
-Miscellaneous options > Dump DSP firmware. Without it the game runs silent.
+Sound needs nothing more: the game brings its own DSP firmware, OpenDSP
+(BSD 2-Clause, Copyright (c) 2026 Cellenseres; its licence is
+`OpenDSP-LICENSE.txt` in the release zip), which also plays the game's
+reverb. Should it fail to start, the game falls back to the console's own
+firmware at `sdmc:/3ds/dspfirm.cdc`, without reverb: dump that once with
+Luma3DS (the Rosalina menu, L + D-pad down + SELECT, then Miscellaneous
+options > Dump DSP firmware).
 
 On the SD card, once installed:
 
 ```
 sdmc:/3ds/
-  dspfirm.cdc              the DSP firmware, for sound
   DK64/
     DK64.3dsx              the program (not needed with the CIA installed)
     DK64.z64               your ROM
+    OpenDSP-LICENSE.txt    OpenDSP's licence (from the release zip)
 ```
 
 ## Controls
@@ -53,6 +56,11 @@ sdmc:/3ds/
 | ZR, D-pad right | C-Right |
 | Circle Pad | analog stick |
 | C-Stick | C buttons or the analog camera (Controls settings) |
+
+The Controls page's X / Y buttons setting puts C-Right on X and C-Left on Y
+instead (C-Up and C-Down stay on the D-pad). The Game page's Performance
+monitor setting hides the bottom screen's frame rate and text; touch
+buttons stay.
 
 SELECT opens the settings on the bottom screen: 3D depth, controls,
 camera, gyro aiming, the game options and the built-in mods. With Tag

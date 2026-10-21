@@ -7,6 +7,10 @@ entrypoint = 0x80000400
 symbols_file_path = "DK64Syms/dump.toml"
 rom_file_path = "donkeykong64.decompressed.us.z64"
 output_func_path = "RecompiledFuncs"
+# Each recompiled function starts with TRACE_ENTRY (include/trace.h): on the
+# 3DS a preemption check that lets a woken higher-priority game thread (the
+# audio thread) run at once, as the N64's interrupts did; nothing on desktop.
+trace_mode = true
 
 manual_funcs = [
     { name = "func_global_asm_80612794", section = ".global_asm", vram = 0x80612794, size = 0x6C }
