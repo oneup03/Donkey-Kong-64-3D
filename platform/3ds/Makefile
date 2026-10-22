@@ -38,8 +38,15 @@ host-tools:
 	cmake --build $(HOST) --target N64RecompCLI RSPRecomp -j
 	g++ -std=c++17 -O2 -o $(HOST)/file_to_c $(ROOT)/lib/rt64/src/tools/file_to_c/file_to_c.cpp
 
+# libultra's matrix helpers run as rt64-3ds's host functions on the 3DS
+# (gu_native.cpp): the game's recompilation runs on a copy of its config
+# with them on the ignored list, so they are not recompiled and the calls,
+# the patches' too, resolve to the host functions of the same names. The
+# desktop config stays as it is.
+GU_IGNORED := "guMtxL2F", "guMtxF2L", "guMtxIdentF", "guMtxIdent", "guMtxCatF", "guMtxXFMF", "guMtxXFML", "guNormalize", "guRotateF", "guTranslateF", "guScaleF",
+
 codegen:
-	cd $(ROOT) && $(HOST)/N64Recomp us.toml
+	cd $(ROOT) && sed '/^ignored = \[/a\    $(GU_IGNORED)' us.toml > us.3ds.toml && $(HOST)/N64Recomp us.3ds.toml
 	cd $(ROOT) && $(HOST)/RSPRecomp n_aspMain.toml
 	$(MAKE) patches
 

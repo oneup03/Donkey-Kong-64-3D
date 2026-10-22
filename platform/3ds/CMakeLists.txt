@@ -29,6 +29,13 @@ target_include_directories(RecompiledFuncs PRIVATE
 # The recompiled game functions' optimisation level: -O2, or another for a
 # console A/B (cmake -DDK64_RECOMP_OPT=-O3 build-3ds; the patches stay at -O2).
 set(DK64_RECOMP_OPT "-O2" CACHE STRING "The optimisation flag for the recompiled game functions")
+# The generated functions' rdram and ctx declared restrict (n64recomp patch
+# 0006, RECOMP_RESTRICT_ARGS with RECOMP_VOLATILE_RDRAM): the context's
+# registers kept in host registers across stores to RDRAM. A console A/B.
+option(DK64_RECOMP_RESTRICT "restrict on the recompiled functions' rdram and ctx" OFF)
+if(DK64_RECOMP_RESTRICT)
+    target_compile_definitions(RecompiledFuncs PRIVATE RECOMP_VOLATILE_RDRAM=1 RECOMP_RESTRICT_ARGS=1)
+endif()
 target_compile_options(RecompiledFuncs PRIVATE
     ${DK64_RECOMP_OPT} -fno-strict-aliasing -w -Wno-implicit-function-declaration -Wno-error=implicit-function-declaration
     -include "${CMAKE_CURRENT_LIST_DIR}/dk64_host_protos.h")
