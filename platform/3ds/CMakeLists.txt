@@ -26,8 +26,11 @@ add_library(RecompiledFuncs STATIC ${FUNC_SOURCES} "${DK64_ROOT}/RecompiledFuncs
 target_include_directories(RecompiledFuncs PRIVATE
     "${DK64_ROOT}/RecompiledFuncs" "${CMAKE_CURRENT_LIST_DIR}" "${DK64_ROOT}/include"
     "${RT64_3DS_NMR_DIR}/N64Recomp/include" "${RT64_3DS_NMR_DIR}/ultramodern/include" "${RT64_3DS_NMR_DIR}/librecomp/include")
+# The recompiled game functions' optimisation level: -O2, or another for a
+# console A/B (cmake -DDK64_RECOMP_OPT=-O3 build-3ds; the patches stay at -O2).
+set(DK64_RECOMP_OPT "-O2" CACHE STRING "The optimisation flag for the recompiled game functions")
 target_compile_options(RecompiledFuncs PRIVATE
-    -O2 -fno-strict-aliasing -w -Wno-implicit-function-declaration -Wno-error=implicit-function-declaration
+    ${DK64_RECOMP_OPT} -fno-strict-aliasing -w -Wno-implicit-function-declaration -Wno-error=implicit-function-declaration
     -include "${CMAKE_CURRENT_LIST_DIR}/dk64_host_protos.h")
 
 add_library(RecompiledPatches STATIC
