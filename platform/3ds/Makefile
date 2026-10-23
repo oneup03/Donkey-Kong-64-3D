@@ -44,6 +44,9 @@ host-tools:
 # the patches' too, resolve to the host functions of the same names. The
 # desktop config stays as it is.
 GU_IGNORED := "guMtxL2F", "guMtxF2L", "guMtxIdentF", "guMtxIdent", "guMtxCatF", "guMtxXFMF", "guMtxXFML", "guNormalize", "guRotateF", "guTranslateF", "guScaleF",
+# DK64's own bone-matrix builder likewise (bones_native.cpp): hand-written
+# MIPS, the game core's biggest cost recompiled.
+GU_IGNORED += "func_global_asm_806195D0",
 
 codegen:
 	cd $(ROOT) && sed '/^ignored = \[/a\    $(GU_IGNORED)' us.toml > us.3ds.toml && $(HOST)/N64Recomp us.3ds.toml
@@ -56,7 +59,10 @@ codegen:
 # submodules, which the build does not need); a missing one is fetched here.
 # Each mod's src/ and include/ are copied, the patches in mods/<mod>/
 # applied to the copy (the submodules stay as they are), and the patch
-# build told where the copies are.
+# build told where the copies are. The patches are recompiled from a copy of
+# patches.toml with trace_mode on, as the game's functions are (trace.h): the
+# preemption check in patched functions too, and the sampling profile naming
+# them rather than booking their time to the nearest traced caller.
 MODS_WORK := $(HOST)/mods
 BUILTIN_MODS := $(notdir $(wildcard $(ROOT)/lib/mods/*))
 patches:
@@ -68,7 +74,7 @@ patches:
 	    for p in $(CURDIR)/mods/$$m/*.patch; do [ -e "$$p" ] || continue; \
 	        (cd $(MODS_WORK)/$$m && patch -p1 --quiet --no-backup-if-mismatch < "$$p") || exit 1; done; done
 	cd $(ROOT)/patches && $(MAKE) clean && $(if $(LLD_LIBS),LD_LIBRARY_PATH=$(LLD_LIBS)) $(MAKE) CC=$(PATCH_CC) LD=$(LLD) BUILTIN_MODS_DIR=$(MODS_WORK) PLATFORM_CPPFLAGS=-DDK64_3DS
-	cd $(ROOT) && $(HOST)/N64Recomp patches.toml
+	cd $(ROOT) && sed '/^\[input\]/a\trace_mode = true' patches.toml > patches.3ds.toml && $(HOST)/N64Recomp patches.3ds.toml
 	$(HOST)/file_to_c $(ROOT)/patches/patches.bin bk_patches_bin $(ROOT)/RecompiledPatches/patches_bin.c $(ROOT)/RecompiledPatches/patches_bin.h
 
 configure:

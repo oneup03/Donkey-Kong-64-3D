@@ -103,3 +103,4 @@ audio.wav
 
 # The 3DS build's copy of the recompiler config (platform/3ds/Makefile codegen)
 us.3ds.toml
+patches.3ds.toml

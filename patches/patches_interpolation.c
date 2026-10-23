@@ -5,6 +5,7 @@
 #include "options.h"
 #include "patches_main.h"
 #include "patches_interpolation.h"
+#include "ui.h"
 
 #define INTERPOLATION_DEBUG 0
 
@@ -478,6 +479,113 @@ extern s32 func_global_asm_8068A3A0(s32 arg0, u32 *arg1);
 extern f32 func_global_asm_8065D0FC(f32 arg0);
 extern void func_global_asm_8068A404(Actor *arg0, s32 arg1, s32 arg2);
 
+void *func_global_asm_80612E90(Actor *arg0, s32 arg1, u8 arg2);
+extern void func_global_asm_80613794(Actor *arg0, u8 arg1);
+#ifdef DK64_3DS
+// The 3DS build's Models row (Low): each Kong drawn with the model
+// two-player and more swap in (D_global_asm_80750100's type 0 entries), the same
+// skeleton at a third to a half less geometry. Keyed by the actor's model
+// rather than its type, so the cutscene Kongs (the DK Rap's) get it too.
+// The model goes in the actor's alternate-model slot (unk4C), which the
+// actor draw uses in place of its own (unk50, a transformation's, still
+// wins); single player only, where nothing else uses the slot for them.
+typedef struct {
+    u16 unk0;       // the model's number (table 5's file + 1)
+    u16 unk2;       // references
+    s32 *unk4;      // the loaded model
+    u8 unk8;
+} Dk64ModelCacheEntry;
+extern Dk64ModelCacheEntry D_global_asm_807FB630[];
+extern u16 D_global_asm_807FBB30;
+
+static s32 dk64_3ds_model_number(void *model) {
+    s32 i;
+    for (i = 0; i < D_global_asm_807FBB30; i++) {
+        if ((void *)D_global_asm_807FB630[i].unk4 == model) {
+            return D_global_asm_807FB630[i].unk0;
+        }
+    }
+    return 0;
+}
+
+// A Kong's full model to its multiplayer one (bone counts checked equal).
+static s32 dk64_3ds_low_poly_kong(s32 model) {
+    switch (model) {
+        case 0x1: case 0x2: return 0x3;             // Diddy, 37 bones
+        case 0x4: return 0x5;                       // DK, 25
+        case 0x6: case 0x7: return 0x8;             // Lanky, 21
+        case 0x9: case 0xA: return 0xB;             // Tiny, 39 (dk64_3ds_fix_tiny)
+        case 0xC: case 0xD: case 0xE: return 0xF;   // Chunky, 23
+    }
+    return 0;
+}
+
+static s32 dk64_3ds_is_low_poly_kong(s32 model) {
+    return model == 0x3 || model == 0x5 || model == 0x8 || model == 0xB || model == 0xF;
+}
+
+// The multiplayer models' colour slots (the actor's texture slots the
+// model's segments 0xD and 0xE read, D_global_asm_80750100's unkC), held at
+// player one's colour as func_global_asm_8068A404 holds each player's every
+// frame. Left alone they keep whatever frame they were at: Tiny's hat drew
+// as a band of stripes.
+void func_global_asm_8068A350(Actor *arg0, s32 arg1, s32 arg2);
+
+// Tiny's multiplayer model draws her arms, legs and body from texture slot
+// 0xD, which multiplayer fills with the player's colour; in single player
+// the actor's slot 0xD is her full model's eye, which then covered them.
+// Her full model draws her outfit from 0xE: the model's four 0xD texture
+// commands (its eyes are on 0xC) pointed there, once, in the loaded model
+// (shared by every actor using it; the change is idempotent).
+#define DK64_3DS_TINY_LOW_SIZE 0x4108
+static void dk64_3ds_fix_tiny(void *model) {
+    u32 *w = (u32 *)model;
+    s32 i;
+    for (i = 0; i + 1 < DK64_3DS_TINY_LOW_SIZE / 4; i += 2) {
+        if (w[i] == 0xFD100000 && w[i + 1] == 0x0D000000) {
+            w[i + 1] = 0x0E000000;
+        }
+    }
+}
+
+static void dk64_3ds_kong_colours(Actor *a, s32 low) {
+    switch (low) {
+        case 0x3: func_global_asm_8068A350(a, 2, 0); break;                                         // Diddy
+        case 0x8: func_global_asm_8068A350(a, 1, 0); break;                                         // Lanky
+        case 0x5: case 0xF: func_global_asm_8068A350(a, 1, 0); func_global_asm_8068A350(a, 2, 0); break;   // DK, Chunky
+        // Tiny: her slots left as her full model has them (dk64_3ds_fix_tiny).
+    }
+}
+
+static void dk64_3ds_kong_models(void) {
+    s32 on = recomp_get_low_models() && cc_number_of_players < 2;
+    s32 i, low;
+    Actor *a;
+    for (i = 0; i < D_global_asm_807FBB34; i++) {
+        a = D_global_asm_807FB930[i].unk0;
+        if (a->unk4C == 0) {
+            if (on && a->unk0 != NULL) {
+                low = dk64_3ds_low_poly_kong(dk64_3ds_model_number(a->unk0));
+                if (low != 0) {
+                    a->unk4C = (u32)func_global_asm_80612E90(a, low, 0);
+                    if (low == 0xB && a->unk4C != 0) {
+                        dk64_3ds_fix_tiny((void *)a->unk4C);
+                    }
+                    dk64_3ds_kong_colours(a, low);
+                }
+            }
+        } else if (dk64_3ds_is_low_poly_kong(low = dk64_3ds_model_number((void *)a->unk4C))) {
+            // Off, or the actor's own model is no longer a Kong's full one.
+            if (!on || dk64_3ds_low_poly_kong(dk64_3ds_model_number(a->unk0)) == 0) {
+                func_global_asm_80613794(a, 1);
+            } else {
+                dk64_3ds_kong_colours(a, low);
+            }
+        }
+    }
+}
+#endif
+
 // @recomp: LOD Handler
 RECOMP_PATCH void func_global_asm_8068A508(void) {
     PlayerAdditionalActorData *PaaD;
@@ -491,6 +599,9 @@ RECOMP_PATCH void func_global_asm_8068A508(void) {
     s32 i;
     Actor *temp_s0;
 
+#ifdef DK64_3DS
+    dk64_3ds_kong_models();
+#endif
     for (i = 0; i < D_global_asm_807FBB34; i++) {
         temp_s0 = D_global_asm_807FB930[i].unk0;
         if (!(temp_s0->object_properties_bitfield & 0x2000)) {
@@ -509,6 +620,24 @@ RECOMP_PATCH void func_global_asm_8068A508(void) {
                                 }
                             }
                             break;
+#ifdef DK64_3DS
+                        // @recomp (3DS) The Models row's Low: the game's own
+                        // far-model swap (the blue beaver's, beyond 200
+                        // units), which the desktop patch leaves off.
+                        case 1:
+                            if (recomp_get_low_models()) {
+                                if (SQ(temp_f0_2) < temp_f20) {
+                                    if (temp_s0->unk4C == 0) {
+                                        temp_s0->unk4C = (u32)func_global_asm_80612E90(temp_s0, D_global_asm_80750100[sp80].unk2, 0);
+                                    }
+                                } else if (temp_s0->unk4C) {
+                                    func_global_asm_80613794(temp_s0, 1);
+                                }
+                            } else if (temp_s0->unk4C) {
+                                func_global_asm_80613794(temp_s0, 1);
+                            }
+                            break;
+#endif
                         // case 1:
                         //     if (SQ(temp_f0_2) < temp_f20) {
                         //         if (temp_s0->unk4C == 0) {

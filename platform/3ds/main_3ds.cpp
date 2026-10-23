@@ -9,6 +9,7 @@ extern "C" {
 }
 
 #include "recomp3ds.h"
+#include "rt64_3ds.h"
 #include "ovl_patches.hpp"
 #include "donk_game.h"
 #include "librecomp/rsp.hpp"
@@ -22,7 +23,7 @@ extern int g_dk64_camera_type, g_dk64_analog_cam_sensitivity, g_dk64_camera_inve
            g_dk64_swim_invert, g_dk64_gyro_aim, g_dk64_story_skip, g_dk64_lightning, g_dk64_draw_distance, g_dk64_particles,
            g_dk64_music_volume, g_dk64_sfx_volume, g_dk64_tag_anywhere,
            g_dk64_no_company_coins, g_dk64_autocomplete_bonuses, g_dk64_easier_beetle,
-           g_dk64_fixed_beaver_bother, g_dk64_slow_shoe, g_dk64_slow_dk_phase;
+           g_dk64_fixed_beaver_bother, g_dk64_slow_shoe, g_dk64_slow_dk_phase, g_dk64_chunk_cull_off, g_dk64_low_models, g_dk64_world_distance;
 
 namespace {
 
@@ -72,6 +73,8 @@ const char* const kStorySkipNames[] = { "Off", "Intro only", "On" };
 const char* const kLightningNames[] = { "Off", "Reduced", "Vanilla" };
 const char* const kOffOnNames[] = { "Off", "On" };
 const char* const kParticleNames[] = { "Full", "Half", "Quarter" };
+const char* const kModelNames[] = { "Full", "Low" };
+void world_distance_changed(int v) { rt64_3ds::set_world_distance(v); }
 // The desktop's options, on the 3DS menu's pages (defaults as on the
 // desktop, except the camera, Better Free here, and gyro aim, on here).
 const MenuOption kOptions[] = {
@@ -89,8 +92,21 @@ const MenuOption kOptions[] = {
     // (patches/particles_3ds.c): each is a draw of its own, which an Old 3DS
     // can't afford by the hundred.
     { "particles", "Particles", 0, 2, &g_dk64_particles, kParticleNames, nullptr, PageGame },
+    // The map's own draw distance, for an Old 3DS to trade distance for
+    // frames: below 100% the parts of the map wholly beyond that share of
+    // the camera's far plane aren't drawn (rt64-3ds's set_world_distance on
+    // the map's gSPCullDisplayList'd pieces, and the game's chunk cull,
+    // patches_main.c's camera patch). Actors keep their own distances.
+    { "world_distance", "World distance", 20, 100, &g_dk64_world_distance, nullptr, world_distance_changed, PageGame, 10, "%" },
+    // Low: the Kongs drawn with the models the game uses for two
+    // or more players, the same skeleton with a third to a half less
+    // geometry, and the game's own far-model swap for actors (the blue
+    // beaver's) back on (patches_interpolation.c).
+    { "models", "Models", 0, 1, &g_dk64_low_models, kModelNames, nullptr, PageGame },
     { "music_volume", "Music volume", 0, 100, &g_dk64_music_volume, nullptr, nullptr, PageGame, 5, "%" },
     { "sfx_volume", "SFX volume", 0, 100, &g_dk64_sfx_volume, nullptr, nullptr, PageGame, 5, "%" },
+    // settings.ini only: the game's chunk cull against the frustum widened to the screen (patches_main.c) off, an A/B.
+    { "dbg_chunk_cull_off", "Chunk cull off (dbg)", 0, 1, &g_dk64_chunk_cull_off, nullptr, nullptr, PageCount },
     // The Mods page: the mods in lib/mods, built into the patches.
     // DK64TagAnywhereRecomp: tag from anywhere with D-pad left/right.
     { "tag_anywhere", "Tag Anywhere", 0, 1, &g_dk64_tag_anywhere, kOffOnNames, tag_anywhere_changed, PageMods },

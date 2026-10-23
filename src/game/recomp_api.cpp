@@ -116,6 +116,16 @@ extern "C" void recomp_get_draw_distance(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, dk64::get_draw_distance() * 50.0f);
 }
 
+// The 3DS build's Models row; the desktop keeps the full models.
+extern "C" void recomp_get_low_models(uint8_t* rdram, recomp_context* ctx) {
+    _return(ctx, (s32)0);
+}
+
+// The 3DS build's World distance row; the desktop draws the whole map.
+extern "C" void recomp_get_draw_scale(uint8_t* rdram, recomp_context* ctx) {
+    _return(ctx, 1.0f);
+}
+
 // DK64-side stereo_runtime_tick pushes a single classification bool per frame:
 // 1 = scene should use reduced convergence (menu / cutscene / minigame),
 // 0 = full user-configured convergence. The host applies the scale in
@@ -148,6 +158,13 @@ extern "C" void recomp_get_builtin_mods(uint8_t* rdram, recomp_context* ctx) {
 // here every particle is drawn.
 extern "C" void recomp_get_particle_divisor(uint8_t* rdram, recomp_context* ctx) {
     _return<s32>(ctx, 1);
+}
+
+// The game's chunk cull against the frustum widened to the screen is the
+// 3DS build's (patches_main.c, DK64_3DS); here every chunk in front of the
+// camera is drawn.
+extern "C" void recomp_get_chunk_cull(uint8_t* rdram, recomp_context* ctx) {
+    _return<s32>(ctx, 0);
 }
 
 extern "C" void recomp_get_story_skip(uint8_t* rdram, recomp_context* ctx) {

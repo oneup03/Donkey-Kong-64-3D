@@ -1,6 +1,7 @@
 #include "common_structs.h"
 #include "patches_main.h"
 #include "ui.h"
+#include "patch_helpers.h"
 
 #define gScissorUpLX D_global_asm_80744498
 #define gScissorUpLY D_global_asm_8074449C
@@ -998,6 +999,151 @@ RECOMP_PATCH s32 func_global_asm_806522CC(s16 arg0, s16 arg1, s16 arg2) {
 
 #define macro_8062DBDC_IF(a0, a1, a2) ((a0 * D_global_asm_807F5E50[0]) + (a1 * D_global_asm_807F5E50[1]) + (a2 * D_global_asm_807F5E50[2])) + D_global_asm_807F5E50[3]
 
+#ifdef DK64_3DS
+DECLARE_FUNC(s32, recomp_get_chunk_cull);
+
+// A map chunk against the camera's frustum, widened to the 3DS screen.
+// func_global_asm_8062AD28's planes (Struct8062DBDC: a, b, c, d at
+// unk0[4..7], unnormalized, inward, through the eye) are two sides, top and
+// bottom, and the far plane (its normal the camera's own reversed, its
+// distance the draw distance). The wide screen shows 400 of the frame's 320
+// units (DK64_3DS_WIDE_MARGIN), so each of the first four is rotated
+// outward about the eye until the tangent of its half-angle has grown by
+// DK64_3DS_CULL_WIDEN (the screen's 1.25 and 16 % of slack; top and bottom
+// get the same, which draws a little more than needed but needs no telling
+// of the pairs apart, whatever the camera's roll), then pushed out by
+// DK64_3DS_CULL_MARGIN; the far plane is pushed out alone. A chunk whose
+// eight corners all lie outside one plane is not drawn. Only chunks wholly
+// off the widened screen go: the renderer's screen cull takes the
+// triangles of the rest.
+#define DK64_3DS_CULL_WIDEN 1.45f
+#define DK64_3DS_CULL_MARGIN 100.0f
+
+static s32 dk64_3ds_chunk_outside(s16 x0, s16 y0, s16 z0, s16 x1, s16 y1, s16 z1, f32 ex, f32 ey, f32 ez, Struct8062DBDC *planes) {
+    f32 fx = D_global_asm_807F5E50[0], fy = D_global_asm_807F5E50[1], fz = D_global_asm_807F5E50[2];
+    f32 fl = _sqrtf(fx * fx + fy * fy + fz * fz);
+    s32 i, c;
+    if (fl < 1e-6f) {
+        return FALSE;
+    }
+    fx /= fl; fy /= fl; fz /= fl;
+    for (i = 0; i < 5; i++) {
+        f32 nx = planes[i].unk0[4], ny = planes[i].unk0[5], nz = planes[i].unk0[6], d = planes[i].unk0[7];
+        f32 nl = _sqrtf(nx * nx + ny * ny + nz * nz);
+        f32 s, px, py, pz, pl, t, cw, sw;
+        if (nl < 1e-6f) {
+            continue;
+        }
+        nx /= nl; ny /= nl; nz /= nl; d /= nl;
+        s = nx * fx + ny * fy + nz * fz;        // the sine of the plane's half-angle; about -1 for the far plane
+        if (s > -0.5f) {
+            if (s <= 0.0f) {
+                continue;                       // not a plane through the eye facing forward: left alone
+            }
+            px = nx - s * fx; py = ny - s * fy; pz = nz - s * fz;
+            pl = _sqrtf(px * px + py * py + pz * pz);
+            if (pl < 1e-4f) {
+                continue;
+            }
+            t = (s / pl) * DK64_3DS_CULL_WIDEN;
+            cw = 1.0f / _sqrtf(1.0f + t * t);
+            sw = t * cw;
+            nx = sw * fx + cw * px / pl; ny = sw * fy + cw * py / pl; nz = sw * fz + cw * pz / pl;
+            d = -(nx * ex + ny * ey + nz * ez) + DK64_3DS_CULL_MARGIN;
+        } else {
+            d += DK64_3DS_CULL_MARGIN;
+        }
+        for (c = 0; c < 8; c++) {
+            f32 cx = (c & 1) ? x1 : x0, cy = (c & 2) ? y1 : y0, cz = (c & 4) ? z1 : z0;
+            if (nx * cx + ny * cy + nz * cz + d >= 0.0f) {
+                break;
+            }
+        }
+        if (c == 8) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+#endif
+
+#ifdef DK64_3DS
+// The camera's display list, as the game's own, with the far plane of its
+// chunk and object cull (func_global_asm_8062C29C's last argument, the
+// player's far) scaled by the World distance row (recomp_get_draw_scale:
+// 1 at 100%). Only the cull's far plane: the projection's far (code_450's
+// guPerspective) is the player's still, so a chunk straddling the shorter
+// plane is drawn whole, and only the chunks wholly beyond it go, as in a
+// map the game gave a shorter far. rt64-3ds's set_world_distance takes the
+// same share of the far plane to the chunks' pieces.
+void func_global_asm_8062C1C0(s32 arg0);
+void func_global_asm_8062C22C(void);
+Gfx *func_global_asm_8062C29C(Gfx *dl, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7, f32 arg8, f32 arg9);
+f32 func_global_asm_8062A850(void);
+extern u8 D_global_asm_807F5FED;
+// A player's viewport (patches_ui.h's Struct80750948, not included here): its
+// rectangle at 4.
+typedef struct {
+    u8 unk0[4];
+    s16 unk4;
+    s16 unk6;
+    s16 unk8;
+    s16 unkA;
+} Dk64PlayerViewport;
+Dk64PlayerViewport *func_global_asm_806C7C94(u8 arg0);
+
+RECOMP_PATCH Gfx *func_global_asm_8062BF24(Gfx *dl, s32 arg1) {
+    Dk64PlayerViewport *temp_v0_2;
+    u8 temp_s4;
+    s32 i;
+    f32 far_scale = recomp_get_draw_scale();
+
+    func_global_asm_8062C1C0(arg1);
+    gDPPipeSync(dl++);
+    if (D_global_asm_807F5FED != 0) {
+        gDPPipelineMode(dl++, G_PM_1PRIMITIVE);
+    } else {
+        gDPPipelineMode(dl++, G_PM_NPRIMITIVE);
+    }
+    for (i = 0; i < D_global_asm_80750AB4; i++) {
+        if (character_change_array[i].does_player_exist) {
+            cc_player_index = i;
+            dl = func_global_asm_8062C29C(dl,
+                character_change_array[i].unk21C,
+                character_change_array[i].unk220,
+                character_change_array[i].unk224,
+                character_change_array[i].unk234,
+                character_change_array[i].unk238,
+                character_change_array[i].unk23C,
+                character_change_array[i].unk28C,
+                character_change_array[i].unk280 * func_global_asm_8062A850(),
+                character_change_array[i].far * far_scale
+            );
+            D_global_asm_807F5FEC = 0;
+        }
+        if ((character_change_array[i].does_player_exist == 0) || (character_change_array[i].unk2EA != 0)) {
+            temp_s4 = character_change_array[i].playerPointer->shadow_opacity;
+            temp_v0_2 = func_global_asm_806C7C94(i);
+            gSPDisplayList(dl++, &D_1000118);
+            gSPTexture(dl++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF);
+            gDPPipeSync(dl++);
+            gDPSetPrimColor(dl++, 0, 0, 0x00, 0x00, 0x00, 0xFF - temp_s4);
+            gDPSetCombineMode(dl++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
+            gDPFillRectangle(dl++,
+                temp_v0_2->unk4,
+                temp_v0_2->unk6,
+                temp_v0_2->unk8,
+                temp_v0_2->unkA
+            );
+            gDPPipeSync(dl++);
+        }
+    }
+    func_global_asm_8062C22C();
+    gDPPipeSync(dl++);
+    return dl;
+}
+#endif
+
 //@recomp: Culling patch for maps
 RECOMP_PATCH s32 func_global_asm_8062DBDC(s16 arg0, s16 arg1, s16 arg2, s16 arg3, s16 arg4, s16 arg5, f32 arg6, f32 arg7, f32 arg8, f32 arg9, Struct8062DBDC *arg10) {
     s32 var_a0;
@@ -1038,6 +1184,18 @@ RECOMP_PATCH s32 func_global_asm_8062DBDC(s16 arg0, s16 arg1, s16 arg2, s16 arg3
     if ((arg0 <= arg6) && (arg6 <= arg3) && (arg1 <= arg7) && (arg7 <= arg4) && (arg2 <= arg8) && (arg8 <= arg5)) {
         return TRUE;
     }
+#ifdef DK64_3DS
+    // @recomp 3DS: the 4:3 frustum tests below (the planes of
+    // func_global_asm_8062AD28, func_global_asm_8062E1F8's clipping) can only
+    // end in TRUE since the desktop's change of the last return, so the
+    // console skips them: they were 5 % of an Old 3DS's game core for
+    // nothing. In their place, the same planes widened to the 3DS screen
+    // (dk64_3ds_chunk_outside): a chunk wholly outside them is not drawn.
+    if (recomp_get_chunk_cull() && dk64_3ds_chunk_outside(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg10)) {
+        return FALSE;
+    }
+    return TRUE;
+#endif
     for (i = 0; (i < 5) && (!var_a2); i++) {
         if ((arg10[i].unk0[7] + (((arg10[i].unk0[4] * arg0) + (arg10[i].unk0[5] * arg1)) + (arg10[i].unk0[6] * arg2))) < 0) {
             var_a0 = TRUE;

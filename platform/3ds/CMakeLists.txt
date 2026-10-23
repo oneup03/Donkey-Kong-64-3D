@@ -16,6 +16,9 @@ set(RT64_3DS_NMR_DIR "${DK64_ROOT}/lib/N64ModernRuntime")
 # saved lets an Old 3DS hold the 32 MB ROM in the CIA's 80 MB mode
 # (main_3ds.cpp, rom_room_mb).
 set(RT64_3DS_MEM_SIZE_MB 12)
+# libultra's matrix helpers as rt64-3ds's host functions (gu_native.cpp),
+# with the Makefile's codegen ignoring them in the game's config copy.
+set(RT64_3DS_GU_NATIVE ON)
 add_subdirectory("${RT64_3DS_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/rt64-3ds")
 
 # The generated game code. Implicit declarations are how the generator refers
@@ -44,7 +47,7 @@ add_library(RecompiledPatches STATIC
     "${DK64_ROOT}/RecompiledPatches/patches.c"
     "${DK64_ROOT}/RecompiledPatches/patches_bin.c")
 target_include_directories(RecompiledPatches PRIVATE
-    "${DK64_ROOT}/RecompiledPatches" "${CMAKE_CURRENT_LIST_DIR}"
+    "${DK64_ROOT}/RecompiledPatches" "${CMAKE_CURRENT_LIST_DIR}" "${DK64_ROOT}/include"
     "${RT64_3DS_NMR_DIR}/N64Recomp/include" "${RT64_3DS_NMR_DIR}/ultramodern/include" "${RT64_3DS_NMR_DIR}/librecomp/include")
 # No force-include here: the patches' own funcs.h declares load_dk64_overlay
 # with the (rdram, ctx) shape, which would conflict.
@@ -54,6 +57,7 @@ target_compile_options(RecompiledPatches PRIVATE
 add_executable(DK64Recompiled3DS
     main_3ds.cpp
     recomp_api_3ds.cpp
+    bones_native.cpp
     "${DK64_ROOT}/rsp/n_aspMain.cpp"
     "${DK64_ROOT}/src/game/rom_decompression.cpp"
     "${DK64_ROOT}/src/main/register_overlays.cpp"
@@ -66,6 +70,9 @@ target_include_directories(DK64Recompiled3DS PRIVATE
 target_compile_options(DK64Recompiled3DS PRIVATE -O2 -Wno-unused-parameter)
 # The audio microcode runs scalar on the ARM11 and is the hottest file.
 set_source_files_properties("${DK64_ROOT}/rsp/n_aspMain.cpp" PROPERTIES COMPILE_OPTIONS "-O3;-fno-strict-aliasing")
+# The bone builder keeps the MIPS routine's float operations one for one
+# (bones_native.cpp): nothing contracted into a fused multiply-add.
+set_source_files_properties(bones_native.cpp PROPERTIES COMPILE_OPTIONS "-O2;-ffp-contract=off")
 target_link_libraries(DK64Recompiled3DS PRIVATE
     recomp_3ds rt64_3ds RecompiledPatches RecompiledFuncs ultramodern librecomp citro3d ctru m)
 target_link_options(DK64Recompiled3DS PRIVATE "-Wl,-Map,${CMAKE_CURRENT_BINARY_DIR}/DK64Recompiled3DS.map")
