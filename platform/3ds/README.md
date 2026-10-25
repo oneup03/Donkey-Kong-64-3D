@@ -57,16 +57,19 @@ sdmc:/3ds/
 | Circle Pad | analog stick |
 | C-Stick | C buttons or the analog camera (Controls settings) |
 
-The Controls page's X / Y buttons setting puts C-Right on X and C-Left on Y
-instead (C-Up and C-Down stay on the D-pad). The Game page's Performance
-monitor setting hides the bottom screen's frame rate and text; touch
-buttons stay.
+The Controls page maps each button (A, B, X, Y, L, R, ZL, ZR and the
+D-pad's directions) to any N64 button, adds up to two N64 buttons on the
+touch screen, can turn off C-Stick up and down, and resets it all with
+Reset controls. The Game page's Performance monitor setting hides the
+bottom screen's frame rate and text; touch buttons stay. The Game page
+also sets each screen's brightness, and the 3D page puts the crosshair at
+the depth under it or at the HUD's.
 
 SELECT opens the settings on the bottom screen: 3D depth, controls,
 camera, gyro aiming, the game options and the built-in mods. With Tag
 Anywhere on, Left and Right buttons on the touch screen switch kongs, and
-the D-pad keeps its C buttons; the Controls page's Mod buttons setting puts
-them on D-pad left/right instead.
+the D-pad keeps its C buttons; to switch with the D-pad instead, map D-pad
+left and right to D-Left and D-Right on the Controls page.
 
 Holding SELECT for a second saves a screenshot to
 `sdmc:/3ds/DK64/screenshots/`: both eyes when 3D is on, and the touch
