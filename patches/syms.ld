@@ -84,5 +84,4 @@ recomp_fb_readback = 0x8F000168;
 recomp_get_builtin_mods = 0x8F00016C;
 recomp_get_particle_divisor = 0x8F000170;
 recomp_get_chunk_cull = 0x8F000174;
-recomp_get_draw_scale = 0x8F000178;
 recomp_get_low_models = 0x8F00017C;

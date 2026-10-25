@@ -114,10 +114,7 @@ wider screen, and far objects use their low-detail models, as on the N64.
 The Game page's **Particles** row (Full, Half, Quarter) thins bursts of
 sparkles, dust, splashes and explosions: each particle costs a draw, which
 an Old 3DS can't afford by the hundred. Only their drawing is skipped; the
-game still handles them as usual. The **World distance** row (100% down
-to 20%) draws the map to that share of its own distance: the pieces of the
-map wholly beyond it aren't drawn. Characters, enemies and objects keep
-their own distances, so nothing pops in nearer. The **Models** row's Low
+game still handles them as usual. The **Models** row's Low
 draws the Kongs with the models the game uses in multiplayer, the
 same animations with a third to a half less geometry, and puts far actors
 on their low-detail models as the N64 did (the blue beaver's).
