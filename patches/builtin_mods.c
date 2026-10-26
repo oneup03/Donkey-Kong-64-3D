@@ -11,6 +11,9 @@
 #include "patch_helpers.h"
 #include "options.h"
 #include "builtin_mods.h"
+#ifdef DK64_LANGUAGES
+#include "languages.h"
+#endif
 
 // The mods' callbacks, by the event they subscribe to.
 void tag_anywhere(void);                                    // DK64TagAnywhereRecomp: every frame
@@ -83,10 +86,16 @@ static void tag_anywhere_follow_setting(void) {
 
 void recomp_on_init(void) {
     refresh();
+#ifdef DK64_LANGUAGES
+    language_on_init();
+#endif
 }
 
 void dk64recomp_every_frame(void) {
     refresh();
+#ifdef DK64_LANGUAGES
+    language_every_frame();
+#endif
     tag_anywhere_follow_setting();
     if (builtin_mod_on(BUILTIN_MOD_TAG_ANYWHERE)) tag_anywhere();
     if (builtin_mod_on(BUILTIN_MOD_AUTOCOMPLETE_BONUS)) autocompleteLoop();
@@ -113,8 +122,18 @@ void recomp_on_eeprom_load(void) {}
 void recomp_on_music_bin_load(s32 song, s32 bank, u8 *bin) {}
 void recomp_on_cutscene_play(s16 *cutscene, u8 *cutscene_bitfield) {}
 void recomp_on_autowalk(void) {}
+#ifdef DK64_LANGUAGES
+void recomp_on_asset_file_load_override(s32 tableIndex, s32 fileIndex, u8 **outputFile, s32 *file_size) {
+    language_asset_override(tableIndex, fileIndex, outputFile, file_size);
+}
+#else
 void recomp_on_asset_file_load_override(s32 tableIndex, s32 fileIndex, u8 **outputFile, s32 *file_size) {}
+#endif
+#ifdef DK64_LANGUAGES
+void recomp_adjust_dl_allocation(s32 *allocation) { language_adjust_dl_allocation(allocation); }
+#else
 void recomp_adjust_dl_allocation(s32 *allocation) {}
+#endif
 void recomp_on_new_file_start(void) {}
 void recomp_on_dirty_file_start(void) {}
 void recomp_on_flag_change(s16 *flag, u8 *target_state, u8 *flag_type) {}

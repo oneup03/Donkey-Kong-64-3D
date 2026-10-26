@@ -18,6 +18,9 @@ BUILD      := $(ROOT)/build-3ds
 HOST       := $(ROOT)/build-host
 PATCH_CC   ?= clang
 LLD        ?= ld.lld
+# The translations' objects are renamed with these (patches/lang_prefix.sh).
+LLVM_NM      ?= llvm-nm
+LLVM_OBJCOPY ?= llvm-objcopy
 LLD_LIBS   ?=
 TARGET     := DK64Recompiled3DS
 AZAHAR_SD  := $(HOME)/.var/app/org.azahar_emu.Azahar/data/azahar-emu/sdmc
@@ -64,16 +67,25 @@ codegen:
 # preemption check in patched functions too, and the sampling profile naming
 # them rather than booking their time to the nearest traced caller.
 MODS_WORK := $(HOST)/mods
-BUILTIN_MODS := $(notdir $(wildcard $(ROOT)/lib/mods/*))
+# The translations (a Language row: one at a time, at restart): lib/mods/
+# <repo> and the tag its symbols take in the patches (patches/Makefile,
+# LANG_MODS_DIR); copied to $(LANG_WORK)/<tag> as the built-in mods are.
+LANG_MODS := RecompFrench:fr RecompGerman:de RecompSpanish:es RecompBrazilianPortuguese:ptbr
+LANG_WORK := $(HOST)/lang_mods
+BUILTIN_MODS := $(filter-out $(foreach l,$(LANG_MODS),$(firstword $(subst :, ,$(l)))),$(notdir $(wildcard $(ROOT)/lib/mods/*)))
 patches:
-	cd $(ROOT) && for m in $(BUILTIN_MODS); do \
+	cd $(ROOT) && for m in $(BUILTIN_MODS) $(foreach l,$(LANG_MODS),$(firstword $(subst :, ,$(l)))); do \
 	    [ -e lib/mods/$$m/src ] || git submodule update --init --checkout lib/mods/$$m || exit 1; done
-	rm -rf $(MODS_WORK)
+	rm -rf $(MODS_WORK) $(LANG_WORK)
 	for m in $(BUILTIN_MODS); do \
 	    mkdir -p $(MODS_WORK)/$$m && cp -r $(ROOT)/lib/mods/$$m/src $(ROOT)/lib/mods/$$m/include $(MODS_WORK)/$$m/ || exit 1; \
 	    for p in $(CURDIR)/mods/$$m/*.patch; do [ -e "$$p" ] || continue; \
 	        (cd $(MODS_WORK)/$$m && patch -p1 --quiet --no-backup-if-mismatch < "$$p") || exit 1; done; done
-	cd $(ROOT)/patches && $(MAKE) clean && $(if $(LLD_LIBS),LD_LIBRARY_PATH=$(LLD_LIBS)) $(MAKE) CC=$(PATCH_CC) LD=$(LLD) BUILTIN_MODS_DIR=$(MODS_WORK) PLATFORM_CPPFLAGS=-DDK64_3DS
+	for l in $(LANG_MODS); do m=$${l%%:*}; t=$${l##*:}; \
+	    mkdir -p $(LANG_WORK)/$$t && cp -r $(ROOT)/lib/mods/$$m/src $(ROOT)/lib/mods/$$m/include $(LANG_WORK)/$$t/ || exit 1; \
+	    for p in $(CURDIR)/mods/$$m/*.patch; do [ -e "$$p" ] || continue; \
+	        (cd $(LANG_WORK)/$$t && patch -p1 --quiet --no-backup-if-mismatch < "$$p") || exit 1; done; done
+	cd $(ROOT)/patches && $(MAKE) clean && $(if $(LLD_LIBS),LD_LIBRARY_PATH=$(LLD_LIBS)) $(MAKE) CC=$(PATCH_CC) LD=$(LLD) NM=$(LLVM_NM) OBJCOPY=$(LLVM_OBJCOPY) BUILTIN_MODS_DIR=$(MODS_WORK) LANG_MODS_DIR=$(LANG_WORK) PLATFORM_CPPFLAGS=-DDK64_3DS
 	cd $(ROOT) && sed '/^\[input\]/a\trace_mode = true' patches.toml > patches.3ds.toml && $(HOST)/N64Recomp patches.3ds.toml
 	$(HOST)/file_to_c $(ROOT)/patches/patches.bin bk_patches_bin $(ROOT)/RecompiledPatches/patches_bin.c $(ROOT)/RecompiledPatches/patches_bin.h
 

@@ -138,6 +138,19 @@ No coin door sets the door's flag in the save when a file starts, so the
 door stays open after switching it off. Slow shoe and Slow DK phase apply
 from the next time the fight's map loads.
 
+The Mods page's **Language** row picks one of four translations (also CC0),
+applied the next time the game starts:
+
+| Language | Mod |
+|---|---|
+| Français | [RecompFrench](https://github.com/theballaam96/RecompFrench) by Ballaam |
+| Deutsch | [RecompGerman](https://github.com/theballaam96/RecompGerman) by Ballaam |
+| Español | [RecompSpanish](https://github.com/theballaam96/RecompSpanish) by Ballaam |
+| Português (Brasil) | [RecompBrazilianPortuguese](https://github.com/brigandier/RecompBrazilianPortuguese) by brigandier, with the opening's subtitles |
+
+They replace the game's text and add their letters to its fonts. The DK
+Rap's lyrics stay in English.
+
 ## AI use
 
 The 3DS port, including this build's code and documentation and the

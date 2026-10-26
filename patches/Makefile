@@ -1,4 +1,5 @@
 TARGET = patches.elf
+.DEFAULT_GOAL := $(TARGET)
 
 CC      ?= clang
 LD      ?= ld.lld
@@ -38,14 +39,37 @@ endef
 $(foreach m,$(MODS),$(eval $(call mod_rules,$(m))))
 endif
 
-$(TARGET): $(C_OBJS) $(MOD_OBJS) patches.ld syms.ld
-	$(LD) $(C_OBJS) $(MOD_OBJS) $(LDFLAGS) -o $@
+# The translations (LANG_MODS_DIR, one directory per language named by its
+# tag: fr, de, es, ptbr; platform/3ds/Makefile copies them as it does the
+# built-in mods): each language's sources, behind the stand-in modding.h of
+# platform/3ds/mods/languages (its patches plain functions), become one
+# object whose symbols all start with its tag (lang_prefix.sh), and
+# languages.c dispatches to the language chosen (DK64_LANGUAGES).
+ifneq ($(LANG_MODS_DIR),)
+LANGS := $(notdir $(wildcard $(LANG_MODS_DIR)/*))
+CPPFLAGS += -DDK64_LANGUAGES
+# (The game's rand by its recompiled name, imported in syms.ld as sqrtf's is.)
+LANG_CPPFLAGS := -I ../platform/3ds/mods/languages -Dsqrtf=sqrtf_recomp -Drand=rand_recomp
+NM      ?= llvm-nm
+OBJCOPY ?= llvm-objcopy
+define lang_rules
+LANG_OBJS += lang_$(1).o
+lang_$(1)_%.o: $(LANG_MODS_DIR)/$(1)/src/%.c
+	$$(CC) $$(CFLAGS) -w $$(LANG_CPPFLAGS) -I $(LANG_MODS_DIR)/$(1)/include $$(CPPFLAGS) -I . $$< -c -o $$@
+lang_$(1).o: $$(patsubst $(LANG_MODS_DIR)/$(1)/src/%.c,lang_$(1)_%.o,$$(wildcard $(LANG_MODS_DIR)/$(1)/src/*.c)) lang_prefix.sh
+	LD=$$(LD) NM=$$(NM) OBJCOPY=$$(OBJCOPY) ./lang_prefix.sh $(1) $$@ $$(filter %.o,$$^)
+endef
+$(foreach l,$(LANGS),$(eval $(call lang_rules,$(l))))
+endif
+
+$(TARGET): $(C_OBJS) $(MOD_OBJS) $(LANG_OBJS) patches.ld syms.ld
+	$(LD) $(C_OBJS) $(MOD_OBJS) $(LANG_OBJS) $(LDFLAGS) -o $@
 
 $(C_OBJS): %.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -MMD -MF $(@:.o=.d) -c -o $@
 
 clean:
-	rm -rf $(C_OBJS) $(TARGET) $(C_DEPS) mod_*.o
+	rm -rf $(C_OBJS) $(TARGET) $(C_DEPS) mod_*.o lang_*.o lang_*.o.syms
 
 -include $(C_DEPS)
 

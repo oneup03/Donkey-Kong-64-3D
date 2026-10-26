@@ -47,6 +47,7 @@ int g_dk64_lightning = 0;               // 0 off (the owner's 3D build), 1 reduc
 int g_dk64_draw_distance = 0;           // percent: 0 = the game's own culling, 100 = ten times it
 int g_dk64_particles = 0;               // 0 full, 1 half, 2 quarter (an Old 3DS starts at quarter)
 int g_dk64_low_models = 0;              // the Models row: 1 Low, the Kongs' multiplayer models and the actors' far models
+int g_dk64_language = 0;                // the Language row: 0 English, 1 French, 2 German, 3 Spanish, 4 Brazilian Portuguese
 int g_dk64_chunk_cull_off = 0;          // settings.ini's dbg_chunk_cull_off: the game's chunk cull against the widened frustum (patches_main.c) off
 int g_dk64_music_volume = 100;          // percent
 int g_dk64_sfx_volume = 100;            // percent
@@ -142,6 +143,8 @@ extern "C" void recomp_get_sfx_volume(uint8_t* rdram, recomp_context* ctx) { (vo
 extern "C" void recomp_get_draw_distance(uint8_t* rdram, recomp_context* ctx) { (void)rdram; _return(ctx, (float)g_dk64_draw_distance * 50.0f); }
 // The Models row (patches_interpolation.c's dk64_3ds_kong_models and LOD handler).
 extern "C" void recomp_get_low_models(uint8_t* rdram, recomp_context* ctx) { (void)rdram; _return(ctx, (int32_t)g_dk64_low_models); }
+// The Language row (patches/languages.c reads it once, at the game's init).
+extern "C" void recomp_get_language(uint8_t* rdram, recomp_context* ctx) { (void)rdram; _return(ctx, (int32_t)g_dk64_language); }
 // patches/particles_3ds.c: of a burst of particle sprites, one in this many is drawn (the Particles row).
 extern "C" void recomp_get_particle_divisor(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram;

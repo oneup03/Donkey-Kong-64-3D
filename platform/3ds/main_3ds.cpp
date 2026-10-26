@@ -23,7 +23,7 @@ extern int g_dk64_camera_type, g_dk64_analog_cam_sensitivity, g_dk64_camera_inve
            g_dk64_swim_invert, g_dk64_gyro_aim, g_dk64_story_skip, g_dk64_lightning, g_dk64_draw_distance, g_dk64_particles,
            g_dk64_music_volume, g_dk64_sfx_volume, g_dk64_tag_anywhere,
            g_dk64_no_company_coins, g_dk64_autocomplete_bonuses, g_dk64_easier_beetle,
-           g_dk64_fixed_beaver_bother, g_dk64_slow_shoe, g_dk64_slow_dk_phase, g_dk64_chunk_cull_off, g_dk64_low_models;
+           g_dk64_fixed_beaver_bother, g_dk64_slow_shoe, g_dk64_slow_dk_phase, g_dk64_chunk_cull_off, g_dk64_low_models, g_dk64_language;
 
 namespace {
 
@@ -58,6 +58,7 @@ const char* const kLightningNames[] = { "Off", "Reduced", "Vanilla" };
 const char* const kOffOnNames[] = { "Off", "On" };
 const char* const kParticleNames[] = { "Full", "Half", "Quarter" };
 const char* const kModelNames[] = { "Full", "Low" };
+const char* const kLanguageNames[] = { "English", "Francais", "Deutsch", "Espanol", "Portugues BR" };
 // The desktop's options, on the 3DS menu's pages (defaults as on the
 // desktop, except the camera, Better Free here, and gyro aim, on here).
 const MenuOption kOptions[] = {
@@ -85,6 +86,9 @@ const MenuOption kOptions[] = {
     { "dbg_chunk_cull_off", "Chunk cull off (dbg)", 0, 1, &g_dk64_chunk_cull_off, nullptr, nullptr, PageCount },
     // The Mods page: the mods in lib/mods, built into the patches.
     // DK64TagAnywhereRecomp: tag from anywhere with D-pad left/right.
+    // The translations built in (lib/mods; patches/languages.c), one at a
+    // time: the game's text and fonts change at its init, so at restart.
+    { "language", "Language (at restart)", 0, 4, &g_dk64_language, kLanguageNames, nullptr, PageMods },
     { "tag_anywhere", "Tag Anywhere", 0, 1, &g_dk64_tag_anywhere, kOffOnNames, tag_anywhere_changed, PageMods },
     // theballaam96's:
     // RecompNoCompanyCoins: Helm's coin door opens without the Nintendo and

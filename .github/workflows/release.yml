@@ -472,7 +472,7 @@ jobs:
       - name: Install 3DS build deps
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends git clang-15 lld-15 ccache p7zip-full
+          apt-get install -y --no-install-recommends git clang-15 lld-15 llvm-15 ccache p7zip-full
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -519,7 +519,7 @@ jobs:
           make -C platform/3ds nmr-patch host-tools
 
       - name: Run N64Recomp & RSPRecomp
-        run: make -C platform/3ds codegen PATCH_CC=clang-15 LLD=ld.lld-15
+        run: make -C platform/3ds codegen PATCH_CC=clang-15 LLD=ld.lld-15 LLVM_NM=llvm-nm-15 LLVM_OBJCOPY=llvm-objcopy-15
 
       - name: Build DK64Recompiled3DS
         env:

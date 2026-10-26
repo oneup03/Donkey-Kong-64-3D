@@ -121,6 +121,12 @@ extern "C" void recomp_get_low_models(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, (s32)0);
 }
 
+// The 3DS build's Language row (its translations are built in); the
+// desktop loads them as mods.
+extern "C" void recomp_get_language(uint8_t* rdram, recomp_context* ctx) {
+    _return(ctx, (s32)0);
+}
+
 // DK64-side stereo_runtime_tick pushes a single classification bool per frame:
 // 1 = scene should use reduced convergence (menu / cutscene / minigame),
 // 0 = full user-configured convergence. The host applies the scale in

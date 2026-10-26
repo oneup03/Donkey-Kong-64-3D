@@ -85,3 +85,5 @@ recomp_get_builtin_mods = 0x8F00016C;
 recomp_get_particle_divisor = 0x8F000170;
 recomp_get_chunk_cull = 0x8F000174;
 recomp_get_low_models = 0x8F00017C;
+recomp_get_language = 0x8F000180;
+rand_recomp = 0x8F000184;

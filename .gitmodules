@@ -51,3 +51,19 @@
 	path = lib/mods/RecompSlowDKPhase
 	url = https://github.com/theballaam96/RecompSlowDKPhase.git
 	update = none
+[submodule "lib/mods/RecompFrench"]
+	path = lib/mods/RecompFrench
+	url = https://github.com/theballaam96/RecompFrench.git
+	update = none
+[submodule "lib/mods/RecompGerman"]
+	path = lib/mods/RecompGerman
+	url = https://github.com/theballaam96/RecompGerman.git
+	update = none
+[submodule "lib/mods/RecompSpanish"]
+	path = lib/mods/RecompSpanish
+	url = https://github.com/theballaam96/RecompSpanish.git
+	update = none
+[submodule "lib/mods/RecompBrazilianPortuguese"]
+	path = lib/mods/RecompBrazilianPortuguese
+	url = https://github.com/brigandier/RecompBrazilianPortuguese.git
+	update = none
