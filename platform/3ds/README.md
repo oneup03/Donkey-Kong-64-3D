@@ -55,13 +55,15 @@ sdmc:/3ds/
 | ZL, D-pad left | C-Left |
 | ZR, D-pad right | C-Right |
 | Circle Pad | analog stick |
-| C-Stick | C buttons or the analog camera (Controls settings) |
+| C-Stick (New 3DS) | C buttons or the analog camera (Controls settings) |
 
 The Controls page maps each button (A, B, X, Y, L, R, ZL, ZR and the
 D-pad's directions) to any N64 button, adds up to two N64 buttons on the
 touch screen, can turn off C-Stick up and down, and resets it all with
-Reset controls. The Game page's Performance monitor setting hides the
-bottom screen's frame rate and text; touch buttons stay. Off also stops
+Reset controls. An Old 3DS, which has no C-Stick, ZL or ZR, leaves their
+rows out, and its Camera setting has no Analog choice. The Game page's
+Performance monitor setting hides the bottom screen's frame rate and
+text; touch buttons stay. Off also stops
 the threads that measure the cores' load, which on an Old 3DS take every
 moment of core 1 the game leaves to the system. The Game page
 also sets each screen's brightness, and the 3D page puts the crosshair at

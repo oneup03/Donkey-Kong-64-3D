@@ -1,10 +1,12 @@
 // Donkey Kong 64: Recompiled, Nintendo 3DS entry point.
 #include <cinttypes>
 #include <cstdio>
+#include <cstring>
 #include <string>
 
 extern "C" {
 #include <3ds/types.h>
+#include <3ds/services/apt.h>
 #include <3ds/services/hid.h>
 }
 
@@ -61,12 +63,14 @@ const char* const kModelNames[] = { "Full", "Low" };
 const char* const kLanguageNames[] = { "English", "Francais", "Deutsch", "Espanol", "Portugues BR" };
 // The desktop's options, on the 3DS menu's pages (defaults as on the
 // desktop, except the camera, Better Free here, and gyro aim, on here).
-const MenuOption kOptions[] = {
+// Not const: an Old 3DS's Camera row stops at Better Free (main).
+MenuOption kOptions[] = {
     { "aim_invert", "Aim invert", 0, 3, &g_dk64_aim_invert, kInvertNames, nullptr, PageControls },
     { "swim_invert", "Swim invert", 0, 3, &g_dk64_swim_invert, kInvertNames, nullptr, PageControls },
     { "gyro_aim", "Gyro aim", 0, 500, &g_dk64_gyro_aim, nullptr, gyro_changed, PageControls, 25, "%", "Off" },
     { "camera_type", "Camera", 0, 3, &g_dk64_camera_type, kCameraNames, camera_changed, PageControls },
-    { "analog_cam_speed", "Analog speed", 1, 10, &g_dk64_analog_cam_sensitivity, nullptr, nullptr, PageControls },
+    // The Analog camera's, which reads the C-Stick: a New 3DS's row only.
+    { "analog_cam_speed", "Analog speed", 1, 10, &g_dk64_analog_cam_sensitivity, nullptr, nullptr, PageControls, 1, nullptr, nullptr, true },
     { "camera_invert", "Camera invert", 0, 3, &g_dk64_camera_invert, kInvertNames, nullptr, PageControls },
     { "story_skip", "Story skip", 0, 2, &g_dk64_story_skip, kStorySkipNames, nullptr, PageGame },
     { "lightning", "Lightning", 0, 2, &g_dk64_lightning, kLightningNames, nullptr, PageGame },
@@ -262,6 +266,15 @@ int main(int argc, char** argv) {
     // it, unlike Banjo's.
     desc.button_map = kButtons;
     desc.button_map_count = sizeof(kButtons) / sizeof(kButtons[0]);
+    // An Old 3DS has no C-Stick: no Analog camera there (a saved one
+    // becomes Better Free).
+    bool new_3ds = false;
+    APT_CheckNew3DS(&new_3ds);
+    if (!new_3ds) {
+        for (MenuOption& o : kOptions) {
+            if (strcmp(o.key, "camera_type") == 0) o.hi = 2;
+        }
+    }
     desc.menu_options = kOptions;
     desc.menu_option_count = sizeof(kOptions) / sizeof(kOptions[0]);
     desc.menu_defaults = kDefaults;
