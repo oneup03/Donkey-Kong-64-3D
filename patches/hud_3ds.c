@@ -10,13 +10,21 @@
 // On the N64 a counter slides in when it changes and out again after a
 // second or so, and the melons when Kong is hurt or healed. On the touch
 // screen nothing covers the scene, so while the HUD is there:
-// - the coloured bananas, the coins and the kong's Golden Bananas are up
-//   from the start (races and minigames put their own counters, items 11, 13
-//   and 14, in those places, and those win);
+// - every counter of the level that means something for the kong is up
+//   from the start: coloured bananas, coins, the Golden Bananas, the ammo
+//   (homing once it has some) with the gun, oranges, crystals and film
+//   while there are any, the instrument's with the instrument. Races and
+//   minigames put their own counters (items 11, 13, 14) where the bananas
+//   and coins go, and those win;
 // - any other counter the game shows stays (its timer never runs out, and
 //   one already on its way out comes back);
 // - the melons are always up, at their full place.
 // Not while the game hides its HUD (cutscenes, menus), nor in multiplayer.
+//
+// The layout there: the right-hand column (x 290, all but the bottom row)
+// moves left by HUD_BOTTOM_RIGHT_SHIFT, beside the left one, and the melons
+// to the top right, which leaves the right of the screen under them to the
+// touch buttons (GameDesc::touch_area_hud, main_3ds.cpp).
 #ifdef DK64_3DS
 #include "common_structs.h"
 #include "patches_ui.h"
@@ -44,11 +52,21 @@ extern u8 D_global_asm_80744504;
 enum {
     HUD_COLOURED_BANANAS = 0,
     HUD_COINS = 1,
+    HUD_AMMO = 2,
+    HUD_HOMING_AMMO = 3,
+    HUD_ORANGES = 4,
+    HUD_CRYSTALS = 5,
+    HUD_FILM = 6,
+    HUD_INSTRUMENT = 7,
     HUD_GOLDEN_BANANAS = 8,
     HUD_RACE_COINS = 11,
     HUD_ALT_COINS = 13,
     HUD_ALT_BANANAS = 14,
 };
+
+// CharacterProgress's bitfields (the decomp's structs.h).
+#define KONG_WEAPON 2           // xxxxxshw: the gun, homing, sniper
+#define KONG_INSTRUMENT 4       // its first bit: the instrument
 
 // What the melons' draw tests too: the game shows its HUD.
 static s32 hud_game_shows(void) {
@@ -59,13 +77,49 @@ static s32 hud_item_up(s32 HUDItemIndex) {
     return D_global_asm_80754280->hud_item[HUDItemIndex].hud_state != 0;
 }
 
-// A core item whose place a race's or minigame's own counter holds.
-static s32 hud_core_blocked(s32 HUDItemIndex) {
+static s32 hud_count(s32 HUDItemIndex) {
+    u16 *count = D_global_asm_80754280->hud_item[HUDItemIndex].actual_count_pointer;
+    return count != NULL ? *count : 0;
+}
+
+// Whether the item is one of the level's counters for this kong.
+static s32 hud_wanted(s32 HUDItemIndex) {
+    u8 *kong = D_global_asm_807FC950 + func_global_asm_806C8DE0(0) * CHARACTER_PROGRESS_SIZE;
+    s32 gun = kong[KONG_WEAPON] & 1;
+    s32 homing = gun && (kong[KONG_WEAPON] & 2) && hud_count(HUD_HOMING_AMMO) > 0;
+
+    switch (HUDItemIndex) {
+        case HUD_COLOURED_BANANAS:
+        case HUD_COINS:
+        case HUD_GOLDEN_BANANAS:
+            return TRUE;
+        case HUD_AMMO:
+            return gun && !homing;
+        case HUD_HOMING_AMMO:
+            return homing;
+        case HUD_ORANGES:
+        case HUD_CRYSTALS:
+        case HUD_FILM:
+            return hud_count(HUDItemIndex) > 0;
+        case HUD_INSTRUMENT:
+            return (kong[KONG_INSTRUMENT] & 1) != 0;
+        default:
+            return FALSE;
+    }
+}
+
+// Whether another counter holds the item's place: a race's or minigame's,
+// or the other kind of ammo.
+static s32 hud_place_taken(s32 HUDItemIndex) {
     switch (HUDItemIndex) {
         case HUD_COLOURED_BANANAS:
             return hud_item_up(HUD_ALT_BANANAS);
         case HUD_COINS:
             return hud_item_up(HUD_RACE_COINS) || hud_item_up(HUD_ALT_COINS);
+        case HUD_AMMO:
+            return hud_wanted(HUD_HOMING_AMMO);
+        case HUD_HOMING_AMMO:
+            return hud_wanted(HUD_AMMO);
         default:
             return FALSE;
     }
@@ -73,9 +127,8 @@ static s32 hud_core_blocked(s32 HUDItemIndex) {
 
 static void hud_keep_up(s32 HUDItemIndex) {
     HUDDisplay *item = &D_global_asm_80754280->hud_item[HUDItemIndex];
-    s32 core = HUDItemIndex == HUD_COLOURED_BANANAS || HUDItemIndex == HUD_COINS || HUDItemIndex == HUD_GOLDEN_BANANAS;
 
-    if (core && hud_core_blocked(HUDItemIndex)) {
+    if (hud_place_taken(HUDItemIndex)) {
         // Make room: out, as the game would take it.
         if (item->hud_state == 1 || item->hud_state == 2) {
             item->hud_state = 3;
@@ -84,7 +137,7 @@ static void hud_keep_up(s32 HUDItemIndex) {
     }
     switch (item->hud_state) {
         case 0:
-            if (core) {
+            if (hud_wanted(HUDItemIndex)) {
                 func_global_asm_806F8BC4(HUDItemIndex, 0, 0);
             }
             break;
@@ -109,15 +162,17 @@ RECOMP_PATCH Gfx *func_global_asm_806FAB20(Gfx *dl) {
         return dl;
     }
     keep = recomp_get_hud_on_bottom() && hud_game_shows();
-    gEX3DSBottomScreen(dl++, 0, 0);
     gDPPipeSync(dl++);
     gSPMatrix(dl++, &D_2000180, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
     for (HUDItemIndex = 0; HUDItemIndex < 0xF; HUDItemIndex++) {
+        HUDDisplay *item = &D_global_asm_80754280->hud_item[HUDItemIndex];
         if (keep) {
             hud_keep_up(HUDItemIndex);
         }
-        switch (D_global_asm_80754280->hud_item[HUDItemIndex].hud_state) {
+        // Each item a span of its own, placed by its N64 place.
+        gEX3DSBottomScreen(dl++, HUD_BOTTOM_IS_RIGHT_COLUMN(item->screen_x, item->screen_y) ? HUD_BOTTOM_RIGHT_SHIFT : 0, 0);
+        switch (item->hud_state) {
             case 0:
                 func_global_asm_806F9518(HUDItemIndex);
                 break;
@@ -131,8 +186,8 @@ RECOMP_PATCH Gfx *func_global_asm_806FAB20(Gfx *dl) {
                 dl = func_global_asm_806FA9C0(HUDItemIndex, dl);
                 break;
         }
+        gEX3DSTopScreen(dl++);
     }
-    gEX3DSTopScreen(dl++);
     return dl;
 }
 
@@ -143,14 +198,15 @@ RECOMP_PATCH Gfx *func_global_asm_806FAB20(Gfx *dl) {
 // commands.
 static Gfx hud_melons_discarded[384];
 
-// @recomp 3DS: the health melons, marked for the touch screen and always up there.
+// @recomp 3DS: the health melons, marked for the touch screen (at its top
+// right) and always up there.
 RECOMP_PATCH Gfx *func_global_asm_80709344(Gfx *dl) {
     s16 i;
     s32 single = cc_number_of_players == 1;
     s32 always = single && recomp_get_hud_on_bottom();
 
     if (single) {
-        gEX3DSBottomScreen(dl++, 0, 0);
+        gEX3DSBottomScreen(dl++, HUD_BOTTOM_MELONS_SHIFT, 0);
     }
     for (i = 0; i < cc_number_of_players; i++) {
         CharacterChange *cc = &character_change_array[i];

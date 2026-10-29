@@ -286,10 +286,11 @@ int main(int argc, char** argv) {
     desc.menu_default_count = sizeof(kDefaults) / sizeof(kDefaults[0]);
     desc.old3ds_frame_cap = 0;          // the game's own rate on an Old 3DS
     // The touch buttons (Tag Anywhere's pair and the player's two) while the
-    // HUD is on the touch screen: x 104..215, y 64..175, between the counters'
-    // columns (icons at x 30 and 290, numbers out to x 100 and from x 230),
-    // under the melons (to y 61) and over the bottom row (from y 188).
-    desc.touch_area_hud = { 13, 8, 14, 14 };
+    // HUD is on the touch screen: x 216..319, y 64..183. patches/hud_3ds.c
+    // moves the right-hand counters left (icons at x 194, numbers from x
+    // ~120) and the melons to the top right (to y 61), and the bottom row
+    // starts at y 188.
+    desc.touch_area_hud = { 27, 8, 13, 15 };
     // The ROM: in memory on a New 3DS. On an Old 3DS the CIA asks for the
     // 80 MB mode (CMakeLists.txt; 96 MB crashed the HOME Menu), whose heap
     // (about 56 MB) holds the 32 MB ROM beside 12 MB of RDRAM and the rest:

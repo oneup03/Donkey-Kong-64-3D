@@ -107,7 +107,7 @@ RECOMP_PATCH Gfx * func_global_asm_80715E94(Struct80717D84* sprite, Gfx *dl, s16
     if ((((gPlayerPointer->control_state == 0x83) || (gPlayerPointer->control_state == 0x67)) && !(sprite->unk38C & 0x20)) || (((global_properties_bitfield & 0x100002) == 0x100002) && !(sprite->unk38C & 0x100))) {
         return dl;
     }
-    raw_alignment = sprite->unk36F & ~ALIGN_BOTTOM_SCREEN;
+    raw_alignment = sprite->unk36F & ~ALIGN_BOTTOM_FLAGS;
     if (sprite->unk36F & ALIGN_HIDING_IN_OVERSCAN) {
         if (((sprite->unk340 * 0.25) < 11) || ((sprite->unk340 * 0.25) > 309)) {
             return dl;
@@ -131,7 +131,7 @@ RECOMP_PATCH Gfx * func_global_asm_80715E94(Struct80717D84* sprite, Gfx *dl, s16
 #ifdef DK64_3DS
     // @recomp 3DS: a HUD sprite on the touch screen (its sub-list with it).
     if (sprite->unk36F & ALIGN_BOTTOM_SCREEN) {
-        gEX3DSBottomScreen(dl++, 0, 0);
+        gEX3DSBottomScreen(dl++, (sprite->unk36F & ALIGN_BOTTOM_SCREEN_LEFT) ? HUD_BOTTOM_RIGHT_SHIFT : 0, 0);
     }
 #endif
     if (raw_alignment) {
@@ -473,7 +473,7 @@ RECOMP_PATCH void func_global_asm_806F9744(Struct806F9744_arg0 *arg0, s32 arg1, 
     }
     temp_s0->unk8 = drawSpriteAtPosition(func_global_asm_806FACE8(arg1), 1.0f, x, y, -10.0f);
 #ifdef DK64_3DS
-    ((Struct80717D84 *)temp_s0->unk8)->unk36F |= ALIGN_BOTTOM_SCREEN;
+    ((Struct80717D84 *)temp_s0->unk8)->unk36F |= ALIGN_BOTTOM_SCREEN | (HUD_BOTTOM_IS_RIGHT_COLUMN(x, y) ? ALIGN_BOTTOM_SCREEN_LEFT : 0);
 #endif
     temp_s0->unk2 = 0;
     if (arg1 == 7) {
