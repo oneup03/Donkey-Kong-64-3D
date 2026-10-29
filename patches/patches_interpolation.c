@@ -59,6 +59,25 @@ void set_sprite_interpolation_state(void) {
     }
 }
 
+// The projection's matrix group, with this frame's skip state.
+static Gfx *projection_group(Gfx *dl, interpolationIDs id) {
+    if (skip_interpolation || skip_persp_interp) {
+        gEXMatrixGroupSkipAllAspect(dl++, id, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_EDIT_NONE, G_EX_ASPECT_AUTO);
+    }
+    else {
+        gEXMatrixGroup(dl++, id, G_EX_INTERPOLATE_SIMPLE, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, G_EX_EDIT_NONE, G_EX_ASPECT_AUTO, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_AUTO);
+    }
+    return dl;
+}
+
+// @recomp: The camera's projection group again, as handle_interpolation set it
+// at the frame's start, for code that leaves another group behind: a matrix
+// group persists for everything drawn after it. The skip state is this
+// frame's (handle_interpolation would count its timers down again).
+Gfx *restore_camera_projection_group(Gfx *dl) {
+    return projection_group(dl, MTXTAG_CAMERAPROJECTION);
+}
+
 Gfx *handle_interpolation(Gfx * dl, interpolationIDs id, u8 decrement) {
     skipInterpHandler(&interpolation_disable_timer, &skip_interpolation, decrement);
     skipInterpHandler(&persp_interpolation_disable_timer, &skip_persp_interp, decrement);
@@ -68,12 +87,7 @@ Gfx *handle_interpolation(Gfx * dl, interpolationIDs id, u8 decrement) {
         skip_persp_interp = TRUE;
     }
     if (id != 0) {
-        if (skip_interpolation || skip_persp_interp) {
-            gEXMatrixGroupSkipAllAspect(dl++, id, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_EDIT_NONE, G_EX_ASPECT_AUTO);
-        }
-        else {
-            gEXMatrixGroup(dl++, id, G_EX_INTERPOLATE_SIMPLE, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, G_EX_EDIT_NONE, G_EX_ASPECT_AUTO, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_AUTO);
-        }
+        dl = projection_group(dl, id);
     }
     else if (skip_interpolation) {
         gEXMatrixGroupNoInterpolate(dl++, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_EDIT_NONE);

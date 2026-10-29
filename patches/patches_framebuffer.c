@@ -781,6 +781,7 @@ extern f32 func_global_asm_80612D10(f32 arg0);
 #define GPACK_RGBA32(r, g, b, a) (((u8)(r) << 0x18) | ((u8)(g) << 0x10) | ((u8)(b) << 0x8) | (u8)(a))
 extern u8 skip_interpolation;
 extern u8 skip_persp_interp;
+extern Gfx *restore_camera_projection_group(Gfx *dl);
 
 // @recomp: Render skybox blend
 RECOMP_PATCH Gfx* func_global_asm_80704B20(Gfx* dl, f32 arg1, f32 arg2, Mtx* arg3, u8 arg4, u8 arg5, u8 arg6, s8 arg7, f32 arg8) {
@@ -1187,5 +1188,11 @@ RECOMP_PATCH Gfx* func_global_asm_80707980(Gfx* dl, f32 arg1, f32 arg2, Mtx *arg
     }
     D_global_asm_80754CE8 = 0.0f;
     gDPPipeSync(dl++);
+    // @recomp: The sky code (func_global_asm_80704B20, func_global_asm_807069A4)
+    // leaves MTXTAG_SKYBOXBLEND behind it, and the world and the HUD drawn after
+    // the sky inherited it. Stereo sends that group's orthographic draws (the
+    // sky's gradient) to infinity, so the HUD of every map with such a sky went
+    // there too, whatever the HUD depth. The rest of the frame is the camera's.
+    dl = restore_camera_projection_group(dl);
     return dl;
 }
