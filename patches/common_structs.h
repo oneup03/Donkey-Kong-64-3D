@@ -53,6 +53,10 @@ u32 func_global_asm_806119A0(void); // Having this here to prevent having to dec
 #define ALIGN_POSITION_RIGHT 0x04
 #define ALIGN_HIDING_IN_OVERSCAN 0x08
 #define ALIGN_NO_INTERP 0x10
+// 3DS: a sprite of the HUD, drawn on the touch screen while the HUD is there
+// (hud_3ds.c). Set on the sprite after it is made, never through
+// setSpriteAlignment, whose global is compared with 1.
+#define ALIGN_BOTTOM_SCREEN 0x20
 #define ALIGN_LEFT (ALIGN_POSITION_LEFT | ALIGN_ON_SCREEN)
 #define ALIGN_RIGHT (ALIGN_POSITION_RIGHT | ALIGN_ON_SCREEN)
 

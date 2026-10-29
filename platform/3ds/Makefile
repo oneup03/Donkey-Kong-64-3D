@@ -85,7 +85,7 @@ patches:
 	    mkdir -p $(LANG_WORK)/$$t && cp -r $(ROOT)/lib/mods/$$m/src $(ROOT)/lib/mods/$$m/include $(LANG_WORK)/$$t/ || exit 1; \
 	    for p in $(CURDIR)/mods/$$m/*.patch; do [ -e "$$p" ] || continue; \
 	        (cd $(LANG_WORK)/$$t && patch -p1 --quiet --no-backup-if-mismatch < "$$p") || exit 1; done; done
-	cd $(ROOT)/patches && $(MAKE) clean && $(if $(LLD_LIBS),LD_LIBRARY_PATH=$(LLD_LIBS)) $(MAKE) CC=$(PATCH_CC) LD=$(LLD) NM=$(LLVM_NM) OBJCOPY=$(LLVM_OBJCOPY) BUILTIN_MODS_DIR=$(MODS_WORK) LANG_MODS_DIR=$(LANG_WORK) PLATFORM_CPPFLAGS=-DDK64_3DS
+	cd $(ROOT)/patches && $(MAKE) clean && $(if $(LLD_LIBS),LD_LIBRARY_PATH=$(LLD_LIBS)) $(MAKE) CC=$(PATCH_CC) LD=$(LLD) NM=$(LLVM_NM) OBJCOPY=$(LLVM_OBJCOPY) BUILTIN_MODS_DIR=$(MODS_WORK) LANG_MODS_DIR=$(LANG_WORK) PLATFORM_CPPFLAGS="-DDK64_3DS -I$(RT64_3DS)/include"
 	cd $(ROOT) && sed '/^\[input\]/a\trace_mode = true' patches.toml > patches.3ds.toml && $(HOST)/N64Recomp patches.3ds.toml
 	$(HOST)/file_to_c $(ROOT)/patches/patches.bin bk_patches_bin $(ROOT)/RecompiledPatches/patches_bin.c $(ROOT)/RecompiledPatches/patches_bin.h
 

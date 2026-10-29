@@ -211,6 +211,9 @@ int main(int argc, char** argv) {
     desc.render.bubble_id_lo = 0x680;
     desc.render.vi_width = 320;
     desc.render.vi_height = 240;
+    // The HUD on the touch screen (patches/hud_3ds.c marks it), the Game
+    // page's HUD row choosing; the counters keep their N64 places there,
+    // the melons along the top.
     desc.render.hud_on_bottom_supported = true;
     desc.render.depth_to_rdram = true;      // the camera's wall avoidance samples the depth buffer
     desc.render.depthless_world_is_hud = true;   // the fairy-camera film card: HUD depth
@@ -282,6 +285,11 @@ int main(int argc, char** argv) {
     desc.menu_defaults = kDefaults;
     desc.menu_default_count = sizeof(kDefaults) / sizeof(kDefaults[0]);
     desc.old3ds_frame_cap = 0;          // the game's own rate on an Old 3DS
+    // The touch buttons (Tag Anywhere's pair and the player's two) while the
+    // HUD is on the touch screen: x 104..215, y 64..175, between the counters'
+    // columns (icons at x 30 and 290, numbers out to x 100 and from x 230),
+    // under the melons (to y 61) and over the bottom row (from y 188).
+    desc.touch_area_hud = { 13, 8, 14, 14 };
     // The ROM: in memory on a New 3DS. On an Old 3DS the CIA asks for the
     // 80 MB mode (CMakeLists.txt; 96 MB crashed the HOME Menu), whose heap
     // (about 56 MB) holds the 32 MB ROM beside 12 MB of RDRAM and the rest:

@@ -1,6 +1,9 @@
 #include "common_structs.h"
 #include "ui.h"
 #include "patches_ui.h"
+#ifdef DK64_3DS
+#include "rt64_3ds_gbi.h"
+#endif
 
 
 void setSpriteAlignment(u8 alignment) {
@@ -104,7 +107,7 @@ RECOMP_PATCH Gfx * func_global_asm_80715E94(Struct80717D84* sprite, Gfx *dl, s16
     if ((((gPlayerPointer->control_state == 0x83) || (gPlayerPointer->control_state == 0x67)) && !(sprite->unk38C & 0x20)) || (((global_properties_bitfield & 0x100002) == 0x100002) && !(sprite->unk38C & 0x100))) {
         return dl;
     }
-    raw_alignment = sprite->unk36F;
+    raw_alignment = sprite->unk36F & ~ALIGN_BOTTOM_SCREEN;
     if (sprite->unk36F & ALIGN_HIDING_IN_OVERSCAN) {
         if (((sprite->unk340 * 0.25) < 11) || ((sprite->unk340 * 0.25) > 309)) {
             return dl;
@@ -125,6 +128,12 @@ RECOMP_PATCH Gfx * func_global_asm_80715E94(Struct80717D84* sprite, Gfx *dl, s16
             }
         }
     }
+#ifdef DK64_3DS
+    // @recomp 3DS: a HUD sprite on the touch screen (its sub-list with it).
+    if (sprite->unk36F & ALIGN_BOTTOM_SCREEN) {
+        gEX3DSBottomScreen(dl++, 0, 0);
+    }
+#endif
     if (raw_alignment) {
         dl = alignHUD(dl, raw_alignment);
     }
@@ -255,6 +264,11 @@ RECOMP_PATCH Gfx * func_global_asm_80715E94(Struct80717D84* sprite, Gfx *dl, s16
     if (raw_alignment > 1) {
         dl = popHUD(dl, raw_alignment);
     }
+#ifdef DK64_3DS
+    if (sprite->unk36F & ALIGN_BOTTOM_SCREEN) {
+        gEX3DSTopScreen(dl++);
+    }
+#endif
     D_global_asm_807F6009 = 5;
     return dl;
 }
@@ -458,6 +472,9 @@ RECOMP_PATCH void func_global_asm_806F9744(Struct806F9744_arg0 *arg0, s32 arg1, 
         changeActorColor(0xFF, 0, 0, 0xFF);
     }
     temp_s0->unk8 = drawSpriteAtPosition(func_global_asm_806FACE8(arg1), 1.0f, x, y, -10.0f);
+#ifdef DK64_3DS
+    ((Struct80717D84 *)temp_s0->unk8)->unk36F |= ALIGN_BOTTOM_SCREEN;
+#endif
     temp_s0->unk2 = 0;
     if (arg1 == 7) {
         temp_s0->unk4 = 1;
@@ -614,6 +631,9 @@ RECOMP_PATCH Gfx *func_global_asm_807138CC(Gfx *dl) {
 
 //@recomp: Locked camera icon
 RECOMP_PATCH Gfx *func_global_asm_8068D8C8(Gfx *dl, s32 arg1) {
+#ifdef DK64_3DS
+    gEX3DSBottomScreen(dl++, 0, 0);     // @recomp 3DS: part of the HUD (hud_3ds.c)
+#endif
     gSPDisplayList(dl++, &D_1000118);
     gDPSetPrimColor(dl++, 0, 0, 0xFF, 0xFF, 0xFF, 0xA0);
     gDPSetCombineMode(dl++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
@@ -628,6 +648,9 @@ RECOMP_PATCH Gfx *func_global_asm_8068D8C8(Gfx *dl, s32 arg1) {
         1.0f, 1.0f,
         0, 0);
     dl = popHUD(dl, ALIGN_RIGHT);
+#ifdef DK64_3DS
+    gEX3DSTopScreen(dl++);
+#endif
     return dl;
 }
 
@@ -652,7 +675,11 @@ RECOMP_PATCH void func_global_asm_806F9B64(s32 arg0) {
         func_global_asm_8071498C(func_global_asm_806F9AF0);
         func_global_asm_80714950(i);
         D_global_asm_807FD7A0[i] = -100.0f;
+#ifdef DK64_3DS
+        drawSpriteAtPosition(D_global_asm_80750518[i], 1.0f, -200.0f, 0.0f, -10.0f)->unk36F |= ALIGN_BOTTOM_SCREEN;
+#else
         drawSpriteAtPosition(D_global_asm_80750518[i], 1.0f, -200.0f, 0.0f, -10.0f);
+#endif
     }
 }
 

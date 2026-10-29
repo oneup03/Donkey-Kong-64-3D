@@ -145,6 +145,8 @@ extern "C" void recomp_get_draw_distance(uint8_t* rdram, recomp_context* ctx) { 
 extern "C" void recomp_get_low_models(uint8_t* rdram, recomp_context* ctx) { (void)rdram; _return(ctx, (int32_t)g_dk64_low_models); }
 // The Language row (patches/languages.c reads it once, at the game's init).
 extern "C" void recomp_get_language(uint8_t* rdram, recomp_context* ctx) { (void)rdram; _return(ctx, (int32_t)g_dk64_language); }
+// The Game page's HUD row (patches/hud_3ds.c): 1 while the HUD is on the touch screen.
+extern "C" void recomp_get_hud_on_bottom(uint8_t* rdram, recomp_context* ctx) { (void)rdram; _return(ctx, (int32_t)(recomp3ds::hud_on_bottom() ? 1 : 0)); }
 // patches/particles_3ds.c: of a burst of particle sprites, one in this many is drawn (the Particles row).
 extern "C" void recomp_get_particle_divisor(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram;
