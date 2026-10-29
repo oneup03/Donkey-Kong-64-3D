@@ -122,6 +122,8 @@ const MenuDefault kDefaults[] = {
     { "cstick_up", 0 },                 // first person from X (C-Up) only
     // A quarter of each particle burst on an Old 3DS (the Particles row).
     { "particles", 2, MenuDefault::Old3dsOnly },
+    // The Kongs' multiplayer models and far actors' low models (the Models row).
+    { "models", 1, MenuDefault::Old3dsOnly },
 };
 
 RspUcodeFunc* get_rsp_microcode(const OSTask* task) {

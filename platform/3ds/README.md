@@ -95,7 +95,7 @@ the slider down the game draws one image. The settings' 3D page tunes it:
 | Ghost reduction: contrast, Ghost black floor | Ease ghosting (a faint double image of high-contrast edges on some screens) by softening contrast and lifting blacks. Off by default (100% and 0%). |
 
 In first person (the scope, the guns), the crosshair sits at the depth of
-whatever it is aimed at.
+whatever it is aimed at; aimed at the sky, it keeps the last depth it had.
 
 ## Performance
 
@@ -110,7 +110,11 @@ CIA asks an Old 3DS for 80 MB, enough to hold the 32 MB ROM in memory. The
 .3dsx gets only the Homebrew Launcher's 64 MB, so it reads the ROM from the
 SD card as it needs it, and loads take longer. It starts at
 the game's own frame rate, as it can't afford the frames in between, and
-with particles at Quarter.
+with particles at Quarter. While the game runs, an Old 3DS's wireless is
+off and its background network services (StreetPass, SpotPass, eShop,
+friends) are paused, and the game takes 85% of the core it shares with the
+system rather than the usual 80%; the wireless and the services come back
+when you quit.
 
 To make it run on the 3DS, this build keeps a few things the desktop build
 turns off or ignores. The game's own culling stays on, widened to the
@@ -121,7 +125,8 @@ an Old 3DS can't afford by the hundred. Only their drawing is skipped; the
 game still handles them as usual. The **Models** row's Low
 draws the Kongs with the models the game uses in multiplayer, the
 same animations with a third to a half less geometry, and puts far actors
-on their low-detail models as the N64 did (the blue beaver's).
+on their low-detail models as the N64 did (the blue beaver's). An Old 3DS
+starts with Particles at Quarter and Models at Low.
 
 ## Built-in mods
 
