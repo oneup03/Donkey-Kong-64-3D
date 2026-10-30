@@ -91,8 +91,19 @@ void recomp_on_init(void) {
 #endif
 }
 
+extern int gameIsInAdventureMode(void);
+
+// What the host was last told of the adventure (recomp_set_in_adventure).
+static s32 in_adventure = -1;
+
 void dk64recomp_every_frame(void) {
+    const s32 adventure = gameIsInAdventureMode() != 0;
+
     refresh();
+    if (adventure != in_adventure) {
+        recomp_set_in_adventure(adventure);
+        in_adventure = adventure;
+    }
 #ifdef DK64_LANGUAGES
     language_every_frame();
 #endif

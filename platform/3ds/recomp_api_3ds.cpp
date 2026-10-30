@@ -52,6 +52,7 @@ int g_dk64_chunk_cull_off = 0;          // settings.ini's dbg_chunk_cull_off: th
 int g_dk64_music_volume = 100;          // percent
 int g_dk64_sfx_volume = 100;            // percent
 int g_dk64_tag_anywhere = 0;            // the mods built into the patches (patches/builtin_mods.c)
+int g_dk64_in_adventure = 0;            // the game is in its adventure (recomp_set_in_adventure)
 int g_dk64_no_company_coins = 0, g_dk64_autocomplete_bonuses = 0, g_dk64_easier_beetle = 0,
     g_dk64_fixed_beaver_bother = 0, g_dk64_slow_shoe = 0, g_dk64_slow_dk_phase = 0;   // the Mods page
 
@@ -180,6 +181,13 @@ extern "C" void recomp_fb_readback(uint8_t* rdram, recomp_context* ctx) {
 extern "C" void recomp_run_ui_callbacks(uint8_t* rdram, recomp_context* ctx) { (void)rdram; (void)ctx; }
 
 extern "C" void recomp_get_story_skip(uint8_t* rdram, recomp_context* ctx) { (void)rdram; _return(ctx, g_dk64_story_skip); }
+// patches/builtin_mods.c, as the game goes in and out of its adventure:
+// Tag Anywhere's touch-screen buttons are up only there.
+void dk64_set_tag_buttons();    // main_3ds.cpp
+extern "C" void recomp_set_in_adventure(uint8_t* rdram, recomp_context* ctx) {
+    g_dk64_in_adventure = _arg<0, s32>(rdram, ctx) != 0;
+    dk64_set_tag_buttons();
+}
 extern "C" void recomp_get_builtin_mods(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram;
     uint32_t on = 0;

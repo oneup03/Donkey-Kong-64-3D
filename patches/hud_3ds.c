@@ -19,7 +19,10 @@
 // - any other counter the game shows stays (its timer never runs out, and
 //   one already on its way out comes back);
 // - the melons are always up, at their full place.
-// Not while the game hides its HUD (cutscenes, menus), nor in multiplayer.
+// Only in the adventure (not the opening, DK TV or the minigames of the
+// Mystery menu), not while the game hides its HUD (cutscenes, menus), nor in
+// multiplayer. A counter's icon is the kong's it was made for
+// (func_global_asm_806FACE8), so a kong switch makes them anew.
 //
 // The layout there: the right-hand column (x 290, all but the bottom row)
 // moves left by HUD_BOTTOM_RIGHT_SHIFT, beside the left one, and the melons
@@ -43,6 +46,7 @@ extern Gfx *func_global_asm_80708DA4(Gfx *dl, s16 playerIndex, CharacterChange *
 extern Gfx *func_global_asm_807085D0(Gfx *dl, void *player, void *character, CharacterChange *arg3);
 extern s32 func_global_asm_80714464(void);
 extern s32 func_global_asm_806C8DE0(s32 playerIndex);
+extern int gameIsInAdventureMode(void);
 extern u8 D_global_asm_807FC950[];      // PlayerProgress[], 0x306 bytes each
 extern u8 D_global_asm_80744504;
 
@@ -68,10 +72,14 @@ enum {
 #define KONG_WEAPON 2           // xxxxxshw: the gun, homing, sniper
 #define KONG_INSTRUMENT 4       // its first bit: the instrument
 
-// What the melons' draw tests too: the game shows its HUD.
+// In the adventure, and what the melons' draw tests too: the game shows its HUD.
 static s32 hud_game_shows(void) {
-    return !(global_properties_bitfield & 3) && !func_global_asm_80714464() && current_map != MAP_MAIN_MENU;
+    return gameIsInAdventureMode() && !(global_properties_bitfield & 3) && !func_global_asm_80714464()
+        && current_map != MAP_MAIN_MENU;
 }
+
+// The kong the counters up were made for.
+static s32 hud_kong = -1;
 
 static s32 hud_item_up(s32 HUDItemIndex) {
     return D_global_asm_80754280->hud_item[HUDItemIndex].hud_state != 0;
@@ -162,6 +170,16 @@ RECOMP_PATCH Gfx *func_global_asm_806FAB20(Gfx *dl) {
         return dl;
     }
     keep = recomp_get_hud_on_bottom() && hud_game_shows();
+    if (keep && func_global_asm_806C8DE0(0) != hud_kong) {
+        // Another kong: what is up goes (the Golden Bananas' kong heads
+        // with it, as nothing places them now) and comes back next frame
+        // with this kong's icons.
+        hud_kong = func_global_asm_806C8DE0(0);
+        for (HUDItemIndex = 0; HUDItemIndex < 0xF; HUDItemIndex++) {
+            func_global_asm_806F9518(HUDItemIndex);
+        }
+        keep = FALSE;
+    }
     gDPPipeSync(dl++);
     gSPMatrix(dl++, &D_2000180, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
@@ -203,7 +221,7 @@ static Gfx hud_melons_discarded[384];
 RECOMP_PATCH Gfx *func_global_asm_80709344(Gfx *dl) {
     s16 i;
     s32 single = cc_number_of_players == 1;
-    s32 always = single && recomp_get_hud_on_bottom();
+    s32 always = single && recomp_get_hud_on_bottom() && gameIsInAdventureMode();
 
     if (single) {
         gEX3DSBottomScreen(dl++, HUD_BOTTOM_MELONS_SHIFT, 0);

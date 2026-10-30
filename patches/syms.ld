@@ -88,3 +88,4 @@ recomp_get_low_models = 0x8F00017C;
 recomp_get_language = 0x8F000180;
 rand_recomp = 0x8F000184;
 recomp_get_hud_on_bottom = 0x8F000188;
+recomp_set_in_adventure = 0x8F00018C;

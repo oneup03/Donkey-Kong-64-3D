@@ -25,7 +25,18 @@ extern int g_dk64_camera_type, g_dk64_analog_cam_sensitivity, g_dk64_camera_inve
            g_dk64_swim_invert, g_dk64_gyro_aim, g_dk64_story_skip, g_dk64_lightning, g_dk64_draw_distance, g_dk64_particles,
            g_dk64_music_volume, g_dk64_sfx_volume, g_dk64_tag_anywhere,
            g_dk64_no_company_coins, g_dk64_autocomplete_bonuses, g_dk64_easier_beetle,
-           g_dk64_fixed_beaver_bother, g_dk64_slow_shoe, g_dk64_slow_dk_phase, g_dk64_chunk_cull_off, g_dk64_low_models, g_dk64_language;
+           g_dk64_fixed_beaver_bother, g_dk64_slow_shoe, g_dk64_slow_dk_phase, g_dk64_chunk_cull_off, g_dk64_low_models, g_dk64_language,
+           g_dk64_in_adventure;
+
+// Tag Anywhere reads the N64 D-pad's left and right (tag backward and
+// forward through the kongs): while it is on they are touch-screen
+// buttons, in the adventure (recomp_set_in_adventure), where it tags. A
+// player who wants them on buttons maps them on the Controls page (D-pad
+// left and right to D-Left and D-Right, say).
+void dk64_set_tag_buttons() {
+    recomp3ds::touch_pad_set(g_dk64_tag_anywhere != 0 && g_dk64_in_adventure != 0
+                             ? (uint16_t)(recomp3ds::N64_DLEFT | recomp3ds::N64_DRIGHT) : 0);
+}
 
 namespace {
 
@@ -38,14 +49,7 @@ const ButtonMap kButtons[] = {
     { KEY_X | KEY_DUP, N64_CUP }, { KEY_Y | KEY_DDOWN, N64_CDOWN },
     { KEY_ZL | KEY_DLEFT, N64_CLEFT }, { KEY_ZR | KEY_DRIGHT, N64_CRIGHT },
 };
-// Tag Anywhere reads the N64 D-pad's left and right (tag backward and
-// forward through the kongs): while it is on they are touch-screen
-// buttons. A player who wants them on buttons maps them on the Controls
-// page (D-pad left and right to D-Left and D-Right, say).
-void set_buttons() {
-    touch_pad_set(g_dk64_tag_anywhere != 0 ? (uint16_t)(N64_DLEFT | N64_DRIGHT) : 0);
-}
-void tag_anywhere_changed(int) { set_buttons(); }
+void tag_anywhere_changed(int) { dk64_set_tag_buttons(); }
 
 const char* const kCameraNames[] = { "Free", "Follow", "Better Free", "Analog" };
 void camera_changed(int type) {
