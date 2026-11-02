@@ -39,7 +39,11 @@ sdmc:/3ds/
   DK64/
     DK64.3dsx              the program (not needed with the CIA installed)
     DK64.z64               your ROM
+    README.md              this file (from the release zip)
     OpenDSP-LICENSE.txt    OpenDSP's licence (from the release zip)
+    settings.ini           the settings, written by the game
+    saves/                 the save (DK64.bin) and its backup
+    screenshots/           the screenshots (see Controls)
 ```
 
 ## Controls
@@ -64,28 +68,34 @@ Reset controls. An Old 3DS, which has no C-Stick, ZL or ZR, leaves their
 rows out, and its Camera setting has no Analog choice.
 
 The HUD is on the touch screen by default (the Game page's HUD row moves
-it back to the top screen), leaving the top screen to the scene. There
-every counter of the level stays up instead of sliding away: colored
-bananas, coins and Golden Bananas, the ammo while the kong has its gun,
-oranges, crystals and film while you have any, the instrument's while the
-kong has it, any other counter once the game has shown it, and the health
-melons. The counters fill the left two thirds, the melons sit at the top
-right, and the touch buttons under them. The minigame timer stays on the
-top screen.
+it back to the top screen), leaving the top screen to the scene. While you
+play (not in the opening, the DK TV demos or the menus), every counter of
+the level stays up there instead of sliding away, with the current kong's
+icons: colored bananas, coins and Golden Bananas, the ammo while the kong
+has its gun, oranges, crystals and film while you have any, the
+instrument's while the kong has it, any other counter once the game has
+shown it, and the health melons. The counters fill the left two thirds,
+the melons sit at the top right, and the touch buttons under them. The
+minigame timer stays on the top screen.
 
-The Game page's
-Performance monitor setting (off by default) shows the frame rate and the
-cores' load on the touch screen; touch buttons stay either way. Off also stops
-the threads that measure the cores' load, which on an Old 3DS take every
-moment of core 1 the game leaves to the system. The Game page
-also sets each screen's brightness, and the 3D page puts the crosshair at
-the depth under it or at the HUD's.
+The Game page's Performance monitor setting (off by default) shows the
+frame rate and the cores' load on the touch screen; touch buttons stay
+either way. Off also stops the threads that measure the cores' load, which
+on an Old 3DS take every moment of core 1 the game leaves to the system.
+The Game page also sets each screen's brightness, and the 3D page puts the
+crosshair at the depth under it or at the HUD's.
 
 SELECT opens the settings on the bottom screen: 3D depth, controls,
 camera, gyro aiming, the game options and the built-in mods. With Tag
-Anywhere on, Left and Right buttons on the touch screen switch kongs, and
-the D-pad keeps its C buttons; to switch with the D-pad instead, map D-pad
-left and right to D-Left and D-Right on the Controls page.
+Anywhere on, Left and Right buttons on the touch screen switch kongs while
+you play, and the D-pad keeps its C buttons; to switch with the D-pad
+instead, map D-pad left and right to D-Left and D-Right on the Controls
+page.
+
+Luma3DS's Rosalina menu (L + D-pad down + SELECT) opens while the game
+runs: while L and D-pad down are held the game leaves the system core
+enough time for it, and that SELECT opens neither the settings nor a
+screenshot.
 
 Holding SELECT for a second saves a screenshot to
 `sdmc:/3ds/DK64/screenshots/`: both eyes when 3D is on, and the touch
