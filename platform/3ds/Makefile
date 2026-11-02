@@ -64,8 +64,9 @@ codegen:
 # applied to the copy (the submodules stay as they are), and the patch
 # build told where the copies are. The patches are recompiled from a copy of
 # patches.toml with trace_mode on, as the game's functions are (trace.h): the
-# preemption check in patched functions too, and the sampling profile naming
-# them rather than booking their time to the nearest traced caller.
+# preemption check in patched functions too, and in a DK64_GAME_PROFILE build
+# the sampling profile naming them rather than booking their time to the
+# nearest traced caller.
 MODS_WORK := $(HOST)/mods
 # The translations (a Language row: one at a time, at restart): lib/mods/
 # <repo> and the tag its symbols take in the patches (patches/Makefile,

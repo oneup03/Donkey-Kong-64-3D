@@ -852,18 +852,24 @@ finish:
 }
 
 // What the recompiled routine's TRACE_ENTRY / TRACE_RETURN did (the game's
-// include/trace.h): the preemption check at its entry, and its name for the
-// sampling profile while it runs.
+// include/trace.h): the preemption check at its entry, and in a
+// DK64_GAME_PROFILE build its name for the sampling profile while it runs.
 extern "C" unsigned int ultramodern_preempt_pending;
 extern "C" void ultramodern_preempt(unsigned char* rdram);
+#ifdef DK64_GAME_PROFILE
 extern "C" const char* volatile recomp3ds_trace_func;
+#endif
 
 extern "C" void func_global_asm_806195D0(uint8_t* rdram, recomp_context* ctx) {
     if (*(volatile unsigned int*)&ultramodern_preempt_pending) {
         ultramodern_preempt(rdram);
     }
+#ifdef DK64_GAME_PROFILE
     const char* const prev = recomp3ds_trace_func;
     recomp3ds_trace_func = "func_global_asm_806195D0 (native)";
     bones_build(rdram, ctx);
     recomp3ds_trace_func = prev;
+#else
+    bones_build(rdram, ctx);
+#endif
 }

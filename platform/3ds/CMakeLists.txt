@@ -53,6 +53,14 @@ target_include_directories(RecompiledPatches PRIVATE
 # with the (rdram, ctx) shape, which would conflict.
 target_compile_options(RecompiledPatches PRIVATE
     -O2 -fno-strict-aliasing -w -Wno-implicit-function-declaration -Wno-error=implicit-function-declaration)
+# The running function's name for the sampling profile of the game
+# (settings.ini's dbg_profile=2), kept by include/trace.h in every call: off
+# by default, as it makes the game's code bigger and costs two stores a call.
+option(DK64_GAME_PROFILE "trace.h names the running game function, for dbg_profile=2" OFF)
+if(DK64_GAME_PROFILE)
+    target_compile_definitions(RecompiledFuncs PRIVATE DK64_GAME_PROFILE)
+    target_compile_definitions(RecompiledPatches PRIVATE DK64_GAME_PROFILE)
+endif()
 
 add_executable(DK64Recompiled3DS
     main_3ds.cpp
@@ -68,6 +76,10 @@ target_include_directories(DK64Recompiled3DS PRIVATE
     "${DK64_ROOT}/RecompiledFuncs" "${DK64_ROOT}/RecompiledPatches"
     "${RT64_3DS_NMR_DIR}/N64Recomp/include" "${RT64_3DS_NMR_DIR}/thirdparty")
 target_compile_options(DK64Recompiled3DS PRIVATE -O2 -Wno-unused-parameter)
+if(DK64_GAME_PROFILE)
+    # bones_native.cpp's native func_global_asm_806195D0 names itself too.
+    target_compile_definitions(DK64Recompiled3DS PRIVATE DK64_GAME_PROFILE)
+endif()
 # The audio microcode runs scalar on the ARM11 and is the hottest file.
 set_source_files_properties("${DK64_ROOT}/rsp/n_aspMain.cpp" PROPERTIES COMPILE_OPTIONS "-O3;-fno-strict-aliasing")
 # The bone builder keeps the MIPS routine's float operations one for one

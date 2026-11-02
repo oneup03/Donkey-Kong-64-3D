@@ -13,18 +13,28 @@
 // audio frames and the music slowed and stalled.
 extern unsigned int ultramodern_preempt_pending;
 extern void ultramodern_preempt(unsigned char* rdram);
+#define TRACE_PREEMPT_CHECK() \
+    if (*(volatile unsigned int*)&ultramodern_preempt_pending) { \
+        ultramodern_preempt(rdram); \
+    }
+
+#ifdef DK64_GAME_PROFILE
 // The function running, for rt64-3ds's sampling profile of the game
 // (settings.ini's dbg_profile=2, game_profile.h): set at entry, the
 // caller's put back at return, so a sample names the function executing.
+// Only in a build with DK64_GAME_PROFILE=ON (platform/3ds/CMakeLists.txt):
+// in every call it made the game's code bigger and cost two stores a call.
 extern const char* volatile recomp3ds_trace_func;
 #define TRACE_ENTRY() \
-    if (*(volatile unsigned int*)&ultramodern_preempt_pending) { \
-        ultramodern_preempt(rdram); \
-    } \
+    TRACE_PREEMPT_CHECK() \
     const char* const trace_prev_ = recomp3ds_trace_func; \
     recomp3ds_trace_func = __func__;
 #define TRACE_RETURN() \
     recomp3ds_trace_func = trace_prev_;
+#else
+#define TRACE_ENTRY() TRACE_PREEMPT_CHECK()
+#define TRACE_RETURN()
+#endif
 #else
 // The desktop runtime has neither: nothing.
 #define TRACE_ENTRY()
