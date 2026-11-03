@@ -168,6 +168,24 @@ extern "C" void recomp_get_chunk_cull(uint8_t* rdram, recomp_context* ctx) {
     _return<s32>(ctx, 0);
 }
 
+// The HUD on the touch screen is the 3DS build's (patches/hud_3ds.c); here
+// it stays where the game draws it.
+extern "C" void recomp_get_hud_on_bottom(uint8_t* rdram, recomp_context* ctx) {
+    _return<s32>(ctx, 0);
+}
+
+// The 3DS build's Tag Anywhere buttons follow the adventure
+// (patches/builtin_mods.c); here the mods are mods.
+extern "C" void recomp_set_in_adventure(uint8_t* rdram, recomp_context* ctx) {
+    (void)rdram; (void)ctx;
+}
+
+// The 3DS renderer finds the bonus games' crosshair by its texture and
+// pauses the match for the race arrows (patches/aim_3ds.c); RT64 does not.
+extern "C" void recomp_stereo_set_aim_textures(uint8_t* rdram, recomp_context* ctx) {
+    (void)rdram; (void)ctx;
+}
+
 extern "C" void recomp_get_story_skip(uint8_t* rdram, recomp_context* ctx) {
     switch (dk64::get_story_skip()) {
         case dk64::StorySkipMode::Off:
