@@ -124,11 +124,10 @@ runs at 30, and by default an interpolated frame is drawn between each two
 of its frames (the Game page's Frame rate: 60 interp.). The heaviest scenes
 drop back toward 30. Set Frame rate to Game for the original 30 fps.
 
-**Old 3DS / 2DS:** runs at 15-25 fps, with the occasional audio glitch
-and some input delay. Install the CIA rather than running the .3dsx: the
-CIA asks an Old 3DS for 80 MB, enough to hold the 32 MB ROM in memory. The
-.3dsx gets only the Homebrew Launcher's 64 MB, so it reads the ROM from the
-SD card as it needs it, and loads take longer.
+**Old 3DS / 2DS:** runs at 15-25 fps. Install the CIA rather than running
+the .3dsx: the CIA asks an Old 3DS for 80 MB, enough to hold the 32 MB ROM
+in memory. The .3dsx gets only the Homebrew Launcher's 64 MB, so it reads
+the ROM from the SD card as it needs it, and loads take longer.
 
 An Old 3DS starts at the game's own frame rate, as it can't afford the
 frames in between. The Game page's Audio row starts at High priority there
