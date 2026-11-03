@@ -67,16 +67,16 @@ touch screen, can turn off C-Stick up and down, and resets it all with
 Reset controls. An Old 3DS, which has no C-Stick, ZL or ZR, leaves their
 rows out, and its Camera setting has no Analog choice.
 
-The HUD is on the touch screen by default (the Game page's HUD row moves
-it back to the top screen), leaving the top screen to the scene. While you
-play (not in the opening, the DK TV demos or the menus), every counter of
-the level stays up there instead of sliding away, with the current kong's
-icons: colored bananas, coins and Golden Bananas, the ammo while the kong
-has its gun, oranges, crystals and film while you have any, the
-instrument's while the kong has it, any other counter once the game has
-shown it, and the health melons. The counters fill the left two thirds,
-the melons sit at the top right, and the touch buttons under them. The
-minigame timer stays on the top screen.
+The HUD is on the top screen by default, as on the N64. The Game page's
+HUD row moves it to the touch screen, leaving the top screen to the scene.
+There, while you play (not in the opening, the DK TV demos or the menus),
+every counter of the level stays up instead of sliding away, with the
+current kong's icons: colored bananas, coins and Golden Bananas, the ammo
+while the kong has its gun, oranges, crystals and film while you have any,
+the instrument's while the kong has it, any other counter once the game
+has shown it, and the health melons. The counters fill the left two
+thirds, the melons sit at the top right, and the touch buttons under them.
+The minigame timer stays on the top screen.
 
 The Game page's Performance monitor setting (off by default) shows the
 frame rate and the cores' load on the touch screen; touch buttons stay

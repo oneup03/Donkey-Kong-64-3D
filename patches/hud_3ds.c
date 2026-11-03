@@ -1,5 +1,5 @@
 // The HUD on the 3DS's touch screen (rt64-3ds's touch-screen HUD; the Game
-// page's HUD row, on the touch screen by default). Marked for it: the health
+// page's HUD row, on the top screen by default). Marked for it: the health
 // melons and the counters' numbers here, the counters' icons (sprites made by
 // func_global_asm_806F9744 and the Golden Banana count's, flagged
 // ALIGN_BOTTOM_SCREEN and marked as they are drawn, patches_ui.c) and the
