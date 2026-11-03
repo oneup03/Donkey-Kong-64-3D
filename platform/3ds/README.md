@@ -112,14 +112,10 @@ the slider down the game draws one image. The settings' 3D page tunes it:
 | 3D depth | The separation between the eyes at the top of the slider (default 50). Raise it for more depth, lower it if the image is hard to focus. |
 | Convergence | How far into the scene the screen's plane sits (default 10.0): things nearer than it come out of the screen, things beyond it go in. |
 | HUD depth | Where the HUD, menus and text sit (50 is on the screen's plane; higher brings them out of the screen, lower pushes them in). |
+| Crosshair | Where the crosshair sits in first person (the scope, the guns) and in the bonus barrels' shooting games. Dynamic (the default): at the depth of whatever it is aimed at, keeping the last depth it had when aimed at the sky. HUD depth: with the HUD. |
 | Auto convergence | On by default: when something comes close to the camera (a wall, a tree, a character in a close-up), the screen's plane moves nearer so it doesn't pop out too far. Convergence stays the farthest it goes. |
 | Comfort target | How far out of the screen Auto convergence lets near things come (0 by default; higher for more pop-out, lower to keep everything behind the screen). |
 | Ghost reduction: contrast, Ghost black floor | Ease ghosting (a faint double image of high-contrast edges on some screens) by softening contrast and lifting blacks. Off by default (100% and 0%). |
-
-In first person (the scope, the guns) and in the bonus barrels' shooting
-games, the crosshair sits at the depth of whatever it is aimed at (or at
-the HUD's, with the 3D page's Crosshair row on HUD depth); aimed at the
-sky, it keeps the last depth it had.
 
 ## Performance
 
@@ -128,22 +124,22 @@ runs at 30, and by default an interpolated frame is drawn between each two
 of its frames (the Game page's Frame rate: 60 interp.). The heaviest scenes
 drop back toward 30. Set Frame rate to Game for the original 30 fps.
 
-**Old 3DS / 2DS:** runs at 15-20 fps, with the occasional audio glitch
+**Old 3DS / 2DS:** runs at 15-25 fps, with the occasional audio glitch
 and some input delay. Install the CIA rather than running the .3dsx: the
 CIA asks an Old 3DS for 80 MB, enough to hold the 32 MB ROM in memory. The
 .3dsx gets only the Homebrew Launcher's 64 MB, so it reads the ROM from the
-SD card as it needs it, and loads take longer. It starts at
-the game's own frame rate, as it can't afford the frames in between, and
-with particles at Quarter. The Game page's Audio row starts at High
-priority there too, as on a New 3DS: the music keeps its tempo by
-interrupting the game's code for the audio thread whenever the sound is
-about to run short. Low priority never interrupts it and runs a little
-faster, but on an Old 3DS the music then slows and its notes come late.
-While the game runs, an Old 3DS's wireless is
-off and its background network services (StreetPass, SpotPass, eShop,
-friends) are paused, and the game takes 85% of the core it shares with the
-system rather than the usual 80%; the wireless and the services come back
-when you quit.
+SD card as it needs it, and loads take longer.
+
+An Old 3DS starts at the game's own frame rate, as it can't afford the
+frames in between. The Game page's Audio row starts at High priority there
+too, as on a New 3DS: the music keeps its tempo by interrupting the game's
+code for the audio thread whenever the sound is about to run short. Low
+priority never interrupts it and runs a little faster, but on an Old 3DS
+the music then slows and its notes come late. While the game runs, an Old
+3DS's wireless is off and its background network services (StreetPass,
+SpotPass, eShop, friends) are paused, and the game takes 85% of the core
+it shares with the system rather than the usual 80%; the wireless and the
+services come back when you quit.
 
 To make it run on the 3DS, this build keeps a few things the desktop build
 turns off or ignores. The game's own culling stays on, widened to the
