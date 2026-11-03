@@ -128,6 +128,14 @@ const MenuDefault kDefaults[] = {
     { "particles", 2, MenuDefault::Old3dsOnly },
     // The Kongs' multiplayer models and far actors' low models (the Models row).
     { "models", 1, MenuDefault::Old3dsOnly },
+    // The Audio row's High priority on an Old 3DS too (the library's Old 3DS
+    // default is Low, which never interrupts the game's code for the audio
+    // thread): at the Old clock DK64's game thread holds its core at 85-100%
+    // and without the preemption its audio thread handed over as few as
+    // 12,700 of 22,050 samples a second, the music slowed and its notes came
+    // up to 2.4 s late (rt64-3ds docs/porting-a-game.md, Preemption). High
+    // preempts only while the DSP holds under 25 ms of audio.
+    { "audio_mode", 2, MenuDefault::Old3dsOnly },
 };
 
 RspUcodeFunc* get_rsp_microcode(const OSTask* task) {

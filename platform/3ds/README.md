@@ -132,7 +132,12 @@ CIA asks an Old 3DS for 80 MB, enough to hold the 32 MB ROM in memory. The
 .3dsx gets only the Homebrew Launcher's 64 MB, so it reads the ROM from the
 SD card as it needs it, and loads take longer. It starts at
 the game's own frame rate, as it can't afford the frames in between, and
-with particles at Quarter. While the game runs, an Old 3DS's wireless is
+with particles at Quarter. The Game page's Audio row starts at High
+priority there too, as on a New 3DS: the music keeps its tempo by
+interrupting the game's code for the audio thread whenever the sound is
+about to run short. Low priority never interrupts it and runs a little
+faster, but on an Old 3DS the music then slows and its notes come late.
+While the game runs, an Old 3DS's wireless is
 off and its background network services (StreetPass, SpotPass, eShop,
 friends) are paused, and the game takes 85% of the core it shares with the
 system rather than the usual 80%; the wireless and the services come back
