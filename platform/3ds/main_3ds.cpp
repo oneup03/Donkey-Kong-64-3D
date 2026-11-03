@@ -138,6 +138,27 @@ const MenuDefault kDefaults[] = {
     { "audio_mode", 2, MenuDefault::Old3dsOnly },
 };
 
+// The crosshairs the renderer finds by their texture (RenderDesc::
+// aim_texture_hashes) and places by the 3D page's Crosshair row, as it does
+// the first-person quad: TABLE_14_TEXTURES_HUD 0x38, the 64x64 IA8 ring of
+// the guns' and the porthole's sights, and 0x83..0x8E, the 12 frames of the
+// four arrows that close in on the bonus games' crosshair (Kremling Kosh,
+// Teetering Turtle Trouble and Searchlight Seek among them;
+// func_bonus_80026690, func_bonus_8002CC08), which moves across the screen. Hashed over the
+// texels as RDRAM holds them (each word byte-swapped), from the ROM's table
+// and checked against captures (dl_test DL_AIM_HASH). The race arrows are
+// frames of the same texture: patches/aim_3ds.c pauses the match while they
+// are up.
+const uint64_t dk64_aim_textures[] = {
+    0x36938954c1501037ull,      // 0x38
+    0xcf27966394b60d3eull, 0x908ce37a60fdcfe7ull, 0x87abcc565cec9e70ull, 0x838b6b9417e310fbull,   // 0x83..0x86
+    0x967fd965b09d22ebull, 0xbdab58b0805bc592ull, 0x9e02ca775ebc6a76ull, 0xb3903fb9294bd6b3ull,   // 0x87..0x8A
+    0xca66348c80486e23ull, 0xe69bf72771369c33ull, 0x84a67a986b9b98ecull, 0xe9a1f8f6172d649dull,   // 0x8B..0x8E
+};
+// Their shapes: only textures of these are hashed (G_IM_FMT_IA, G_IM_SIZ_8b;
+// G_IM_FMT_RGBA, G_IM_SIZ_16b).
+const rt64_3ds::TexShape dk64_aim_shapes[] = { { 64, 64, 3, 1 }, { 32, 16, 0, 2 } };
+
 RspUcodeFunc* get_rsp_microcode(const OSTask* task) {
     switch (task->t.type) {
         case M_AUDTASK:
@@ -263,6 +284,10 @@ int main(int argc, char** argv) {
     // ms a frame there, and the camera's and the sun's tests read a depth a
     // frame old meanwhile.
     desc.render.depth_to_rdram_every_old3ds = 2;
+    desc.render.aim_texture_hashes = dk64_aim_textures;
+    desc.render.aim_texture_count = sizeof(dk64_aim_textures) / sizeof(dk64_aim_textures[0]);
+    desc.render.aim_texture_shapes = dk64_aim_shapes;
+    desc.render.aim_texture_shape_count = sizeof(dk64_aim_shapes) / sizeof(dk64_aim_shapes[0]);
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (see rt64-3ds naudio_hle.cpp)
     // The Audio engine row's DSP mode (rt64-3ds dsp_synth.h): the voices
     // play on DSP channels, as us.toml's n_alSyn* hooks report them, and the

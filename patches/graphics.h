@@ -19,6 +19,11 @@ DECLARE_FUNC(void, recomp_stereo_set_low_convergence_scene, s32 active);
 // which draw reticle-shaped quads near the middle of the screen - out of it.
 DECLARE_FUNC(void, recomp_stereo_set_first_person, s32 active);
 
+// The 3DS renderer's match of the crosshair textures (rt64_3ds::
+// set_aim_textures): 0 pauses it while the race arrows, frames of the
+// bonus games' crosshair texture, are up (aim_3ds.c). The 3DS only.
+DECLARE_FUNC(void, recomp_stereo_set_aim_textures, s32 on);
+
 // Fill a rectangle of an RGBA16 framebuffer in RDRAM with what is on screen,
 // for game code that reads pixels (the fairy camera). xy = x << 16 | y and
 // wh = w << 16 | h in framebuffer pixels. A no-op where the renderer already

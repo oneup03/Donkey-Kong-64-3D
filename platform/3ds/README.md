@@ -116,8 +116,10 @@ the slider down the game draws one image. The settings' 3D page tunes it:
 | Comfort target | How far out of the screen Auto convergence lets near things come (0 by default; higher for more pop-out, lower to keep everything behind the screen). |
 | Ghost reduction: contrast, Ghost black floor | Ease ghosting (a faint double image of high-contrast edges on some screens) by softening contrast and lifting blacks. Off by default (100% and 0%). |
 
-In first person (the scope, the guns), the crosshair sits at the depth of
-whatever it is aimed at; aimed at the sky, it keeps the last depth it had.
+In first person (the scope, the guns) and in the bonus barrels' shooting
+games, the crosshair sits at the depth of whatever it is aimed at (or at
+the HUD's, with the 3D page's Crosshair row on HUD depth); aimed at the
+sky, it keeps the last depth it had.
 
 ## Performance
 

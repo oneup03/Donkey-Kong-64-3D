@@ -169,6 +169,12 @@ extern "C" void recomp_stereo_set_first_person(uint8_t* rdram, recomp_context* c
     rt64_3ds::set_first_person(_arg<0, s32>(rdram, ctx) != 0);
 }
 
+// patches/aim_3ds.c: the crosshair textures' match paused while the race
+// arrows, frames of the same texture, are up.
+extern "C" void recomp_stereo_set_aim_textures(uint8_t* rdram, recomp_context* ctx) {
+    rt64_3ds::set_aim_textures(_arg<0, s32>(rdram, ctx) != 0);
+}
+
 // The fairy camera reads the picture out of the framebuffer (patches_heap.c).
 extern "C" void recomp_fb_readback(uint8_t* rdram, recomp_context* ctx) {
     const uint32_t fb = _arg<0, uint32_t>(rdram, ctx);

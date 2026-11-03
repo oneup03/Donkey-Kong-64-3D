@@ -28,6 +28,10 @@
 #include "common_structs.h"
 #include "graphics.h"
 
+#ifdef DK64_3DS
+void aim_3ds_tick(void); // patches/aim_3ds.c
+#endif
+
 // game_mode @ 0x80755318, values from the game_mode_e enum in the decomp.
 extern u8 game_mode;
 
@@ -136,4 +140,7 @@ static s32 stereo_first_person_active(void) {
 void stereo_runtime_tick(void) {
     recomp_stereo_set_low_convergence_scene(stereo_scene_wants_low_convergence());
     recomp_stereo_set_first_person(stereo_first_person_active());
+#ifdef DK64_3DS
+    aim_3ds_tick();
+#endif
 }
