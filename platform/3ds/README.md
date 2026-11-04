@@ -92,10 +92,10 @@ you play, and the D-pad keeps its C buttons; to switch with the D-pad
 instead, map D-pad left and right to D-Left and D-Right on the Controls
 page.
 
-Luma3DS's Rosalina menu (L + D-pad down + SELECT) opens while the game
-runs: while L and D-pad down are held the game leaves the system core
-enough time for it, and that SELECT opens neither the settings nor a
-screenshot.
+Luma3DS's Rosalina menu (L + D-pad down + SELECT, or the combo you set)
+opens while the game runs, whichever key you press first: the game first
+leaves the system core enough time for it, and that SELECT opens neither
+the settings nor a screenshot.
 
 Holding SELECT for a second saves a screenshot to
 `sdmc:/3ds/DK64/screenshots/`: both eyes when 3D is on, and the touch
