@@ -30,6 +30,33 @@ void aim_3ds_tick(void) {
     }
 }
 
+// The gyro's pitch, turned by the angle the console turned. The game does
+// not aim up and down by an angle: first person and the cannon move a look
+// point a fixed distance ahead up and down, so the stick's step in height
+// is about half a degree near level and less towards the limits, where the
+// same gyro tilt as the turn's barely moves the aim. This raises a point
+// `h` above the eye and `dist` ahead by `deg` degrees: tan(a + d) from
+// tan(a) = h / dist and tan(d), the series being exact enough for a frame's
+// turn. Past straight up or down it stops; the game's own limit on the
+// height still applies after it.
+f32 aim_3ds_raise(f32 h, f32 dist, f32 deg) {
+    f32 d = deg * (MATH_PI_F / 180.0f);
+    f32 u, t, den;
+
+    if (d > 0.5f) {
+        d = 0.5f;
+    } else if (d < -0.5f) {
+        d = -0.5f;
+    }
+    u = d + (d * d * d) / 3.0f;
+    t = h / dist;
+    den = 1.0f - (t * u);
+    if (den < 0.05f) {
+        den = 0.05f;
+    }
+    return dist * (t + u) / den;
+}
+
 typedef struct {
     u8 unk0;
 } AAD_8068E474_unk34;
