@@ -536,6 +536,10 @@ extern void *D_global_asm_8076A080;
 extern u16 D_global_asm_8076A09C;
 extern Gfx **D_1000090;
 
+#ifdef DK64_3DS
+void hud_3ds_keep_leaves(void **tiles); // patches/hud_3ds.c
+#endif
+
 // @recomp: Zipper DL Setup
 RECOMP_PATCH void func_global_asm_8070AC74(Mtx *arg0, Gfx **dlp) {
     Gfx *dl;
@@ -599,8 +603,17 @@ RECOMP_PATCH Gfx* func_global_asm_80706F90(Gfx* dl) {
     gDPSetTextureFilter(dl++, G_TF_BILERP);
     //
     gEXPushScissor(dl++);
+#ifdef DK64_3DS
+    // rt64-3ds keeps G_EX_ORIGIN_NONE at the 4:3 placement (the wide screen
+    // spans -40..360 of it), where RT64 spreads it over the whole width: the
+    // left origin puts x 0 at the wide screen's left edge, or the scissor
+    // cut the 40 pixels left of the 4:3 frame.
+    gEXSetScissor(dl++, G_SC_NON_INTERLACE, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, width, height);
+    gEXSetRectAlign(dl++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, 0, 0);
+#else
     gEXSetScissor(dl++, G_SC_NON_INTERLACE, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, width, height);
     gEXSetRectAlign(dl++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
+#endif
     //
     gSPTexture(dl++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
     gDPSetPrimColor(dl++, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -617,6 +630,9 @@ RECOMP_PATCH Gfx* func_global_asm_80706F90(Gfx* dl) {
             D_global_asm_807FD978[i] = getPointerTableFile(TABLE_25_TEXTURES_GEOMETRY, D_global_asm_80754CEC[i], 0U, 0U);
         }
     }
+#ifdef DK64_3DS
+    hud_3ds_keep_leaves(D_global_asm_807FD978);
+#endif
     spE6 = 0;
     for (spF4 = 0x40; spF4 >= 0; spF4 -= 0x40) {
         spF8 = 0;

@@ -59,12 +59,20 @@ u32 func_global_asm_806119A0(void); // Having this here to prevent having to dec
 // setSpriteAlignment, whose global is compared with 1.
 #define ALIGN_BOTTOM_SCREEN 0x20
 #define ALIGN_BOTTOM_SCREEN_LEFT 0x40
-#define ALIGN_BOTTOM_FLAGS (ALIGN_BOTTOM_SCREEN | ALIGN_BOTTOM_SCREEN_LEFT)
+#define ALIGN_BOTTOM_SCREEN_TOP_ROW 0x80   // moved up by HUD_BOTTOM_TOP_ROW_DY
+#define ALIGN_BOTTOM_FLAGS (ALIGN_BOTTOM_SCREEN | ALIGN_BOTTOM_SCREEN_LEFT | ALIGN_BOTTOM_SCREEN_TOP_ROW)
 // The touch screen's HUD: the right-hand column (x 290, above the bottom
 // row) moved left, the melons to the top right, the touch buttons under them.
+// The top row (coloured bananas, coins and what takes their place in races
+// and minigames, the melons) up a little, and the Golden Bananas' kong heads
+// down a little, or DK's head covered the coloured banana.
 #define HUD_BOTTOM_RIGHT_SHIFT (-96)
 #define HUD_BOTTOM_MELONS_SHIFT 110
+#define HUD_BOTTOM_TOP_ROW_DY (-6)
+#define HUD_BOTTOM_GB_HEADS_DY 4
 #define HUD_BOTTOM_IS_RIGHT_COLUMN(x, y) ((x) > 240 && (y) < 190)
+#define HUD_BOTTOM_IS_TOP_ROW(item) ((item) == 0 || (item) == 1 || (item) == 11 || (item) == 13 || (item) == 14)
+#define HUD_BOTTOM_ITEM_DY(item) (HUD_BOTTOM_IS_TOP_ROW(item) ? HUD_BOTTOM_TOP_ROW_DY : 0)
 #define ALIGN_LEFT (ALIGN_POSITION_LEFT | ALIGN_ON_SCREEN)
 #define ALIGN_RIGHT (ALIGN_POSITION_RIGHT | ALIGN_ON_SCREEN)
 

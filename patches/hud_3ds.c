@@ -189,7 +189,8 @@ RECOMP_PATCH Gfx *func_global_asm_806FAB20(Gfx *dl) {
             hud_keep_up(HUDItemIndex);
         }
         // Each item a span of its own, placed by its N64 place.
-        gEX3DSBottomScreen(dl++, HUD_BOTTOM_IS_RIGHT_COLUMN(item->screen_x, item->screen_y) ? HUD_BOTTOM_RIGHT_SHIFT : 0, 0);
+        gEX3DSBottomScreen(dl++, HUD_BOTTOM_IS_RIGHT_COLUMN(item->screen_x, item->screen_y) ? HUD_BOTTOM_RIGHT_SHIFT : 0,
+                           HUD_BOTTOM_ITEM_DY(HUDItemIndex));
         switch (item->hud_state) {
             case 0:
                 func_global_asm_806F9518(HUDItemIndex);
@@ -224,7 +225,7 @@ RECOMP_PATCH Gfx *func_global_asm_80709344(Gfx *dl) {
     s32 always = single && recomp_get_hud_on_bottom() && gameIsInAdventureMode();
 
     if (single) {
-        gEX3DSBottomScreen(dl++, HUD_BOTTOM_MELONS_SHIFT, 0);
+        gEX3DSBottomScreen(dl++, HUD_BOTTOM_MELONS_SHIFT, HUD_BOTTOM_TOP_ROW_DY);
     }
     for (i = 0; i < cc_number_of_players; i++) {
         CharacterChange *cc = &character_change_array[i];
@@ -254,6 +255,117 @@ RECOMP_PATCH Gfx *func_global_asm_80709344(Gfx *dl) {
     }
     if (single) {
         gEX3DSTopScreen(dl++);
+    }
+    return dl;
+}
+
+// The main menu's leaves, still, behind the touch screen's HUD. The menu
+// background (func_global_asm_80706F90, patches_framebuffer.c) loads its 8
+// tiles (32x64 RGBA16, TABLE_25) and hands them here, copied, so play
+// loads nothing for them; the adventure always starts from that menu.
+#define HUD_LEAF_TILES 8
+#define HUD_LEAF_TILE_WORDS (32 * 64 * 2 / 4)
+static u32 hud_leaves[HUD_LEAF_TILES][HUD_LEAF_TILE_WORDS] __attribute__((aligned(8)));
+static s32 hud_leaves_kept = FALSE;
+
+void hud_3ds_keep_leaves(void **tiles) {
+    s32 i, w;
+    // Each frame the menu draws them, not only the first: the last copy is
+    // of tiles the menu has visibly drawn.
+    for (i = 0; i < HUD_LEAF_TILES; i++) {
+        if (tiles[i] == NULL) {
+            return;
+        }
+    }
+    for (i = 0; i < HUD_LEAF_TILES; i++) {
+        const u32 *src = (const u32 *)tiles[i];
+        for (w = 0; w < HUD_LEAF_TILE_WORDS; w++) {
+            hud_leaves[i][w] = src[w];
+        }
+    }
+    hud_leaves_kept = TRUE;
+}
+
+// At the frame's start, before anything the HUD marks: the menu's 128x128
+// block of tiles (4 columns of 32, two rows of 64, flipped as the menu draws
+// them) repeated over the touch screen's 320x240, not scrolling.
+Gfx *hud_3ds_background(Gfx *dl) {
+    s32 row, col, bx, by, tile;
+    if (!hud_leaves_kept || cc_number_of_players >= 2 || !recomp_get_hud_on_bottom() || !hud_game_shows()) {
+        return dl;
+    }
+    gEX3DSBottomScreen(dl++, 0, 0);
+    gDPPipeSync(dl++);
+    gSPLoadGeometryMode(dl++, 0);
+    gSPSetGeometryMode(dl++, G_SHADE | G_SHADING_SMOOTH);
+    gDPSetCycleType(dl++, G_CYC_1CYCLE);
+    gDPSetRenderMode(dl++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
+    gDPSetCombineMode(dl++, G_CC_MODULATEIDECALA_PRIM, G_CC_MODULATEIDECALA_PRIM);
+    gDPSetTexturePersp(dl++, G_TP_NONE);
+    gDPSetTextureFilter(dl++, G_TF_BILERP);
+    gSPTexture(dl++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
+    gDPSetPrimColor(dl++, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF);
+    tile = 0;
+    for (row = 64; row >= 0; row -= 64) {
+        for (col = 0; col < 128; col += 32, tile++) {
+            gDPPipeSync(dl++);
+            gDPLoadTextureBlock(dl++, hud_leaves[tile], G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 64, 0,
+                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+                                G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+            for (bx = 0; bx < 320; bx += 128) {
+                for (by = 0; by < 240; by += 128) {
+                    const s32 x = (bx + col) << 2, y = (by + row) << 2;
+                    gSPScisTextureRectangle(dl++, x, y, x + 0x80, y + 0x100, 0, 0, 0x7FF, 1024, -1024);
+                }
+            }
+        }
+    }
+    gDPPipeSync(dl++);
+    gSPTexture(dl++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_OFF);
+    gDPSetTexturePersp(dl++, G_TP_PERSP);
+    gEX3DSTopScreen(dl++);
+    return dl;
+}
+
+extern Gfx *func_global_asm_80706F90(Gfx *dl);
+extern Gfx *func_global_asm_80707980(Gfx *dl, f32 arg1, f32 arg2, Mtx *arg3, s16 arg4);
+extern s32 D_global_asm_807552EC;
+
+// @recomp 3DS: each frame's backdrop (the world's first draw, from the
+// frame's world builder func_global_asm_8062C29C), with the touch screen's
+// leaves ahead of it so they lie under everything the HUD marks there. The
+// rest is the decomp's.
+RECOMP_PATCH Gfx *func_global_asm_8070835C(Gfx *dl, s16 arg1) {
+    s32 var_a1;
+    s32 var_v0;
+    s32 new_var;
+    CharacterChange *cc = &character_change_array[arg1];
+
+    dl = hud_3ds_background(dl);
+    if ((cc_number_of_players > 1) || (global_properties_bitfield & 0x10) == 0) {
+        if (current_map == MAP_MAIN_MENU) {
+            dl = func_global_asm_80706F90(dl);
+        } else {
+            new_var = (global_properties_bitfield & 2) == 0;
+            var_a1 = new_var;
+            if (cc_number_of_players > 1) {
+                var_v0 = current_map == MAP_KONG_BATTLE_ARENA_2 ? FALSE : TRUE;
+                var_v0 |= (D_global_asm_807552EC > 1);
+                var_a1 |= var_v0;
+            }
+            if (!var_a1) {
+                return dl;
+            }
+            gDPPipeSync(dl++);
+            gDPSetRenderMode(dl++, G_RM_NOOP, G_RM_NOOP2);
+            gDPSetFillColor(dl++, 0x00010001);
+            gDPSetCycleType(dl++, G_CYC_FILL);
+            gDPFillRectangle(dl++, cc->unk270[0], cc->unk270[1], cc->unk270[2] - 1, cc->unk270[3] - 1);
+            gDPPipeSync(dl++);
+            gDPSetCycleType(dl++, G_CYC_1CYCLE);
+        }
+    } else {
+        dl = func_global_asm_80707980(dl, cc->unk2D4, cc->unk2D8, (Mtx *)cc->pad108 + D_global_asm_807444FC, arg1);
     }
     return dl;
 }

@@ -3,6 +3,7 @@
 #include "patches_ui.h"
 #ifdef DK64_3DS
 #include "rt64_3ds_gbi.h"
+DECLARE_FUNC(s32, recomp_get_hud_on_bottom);
 #endif
 
 
@@ -131,7 +132,8 @@ RECOMP_PATCH Gfx * func_global_asm_80715E94(Struct80717D84* sprite, Gfx *dl, s16
 #ifdef DK64_3DS
     // @recomp 3DS: a HUD sprite on the touch screen (its sub-list with it).
     if (sprite->unk36F & ALIGN_BOTTOM_SCREEN) {
-        gEX3DSBottomScreen(dl++, (sprite->unk36F & ALIGN_BOTTOM_SCREEN_LEFT) ? HUD_BOTTOM_RIGHT_SHIFT : 0, 0);
+        gEX3DSBottomScreen(dl++, (sprite->unk36F & ALIGN_BOTTOM_SCREEN_LEFT) ? HUD_BOTTOM_RIGHT_SHIFT : 0,
+                           (sprite->unk36F & ALIGN_BOTTOM_SCREEN_TOP_ROW) ? HUD_BOTTOM_TOP_ROW_DY : 0);
     }
 #endif
     if (raw_alignment) {
@@ -473,7 +475,8 @@ RECOMP_PATCH void func_global_asm_806F9744(Struct806F9744_arg0 *arg0, s32 arg1, 
     }
     temp_s0->unk8 = drawSpriteAtPosition(func_global_asm_806FACE8(arg1), 1.0f, x, y, -10.0f);
 #ifdef DK64_3DS
-    ((Struct80717D84 *)temp_s0->unk8)->unk36F |= ALIGN_BOTTOM_SCREEN | (HUD_BOTTOM_IS_RIGHT_COLUMN(x, y) ? ALIGN_BOTTOM_SCREEN_LEFT : 0);
+    ((Struct80717D84 *)temp_s0->unk8)->unk36F |= ALIGN_BOTTOM_SCREEN | (HUD_BOTTOM_IS_RIGHT_COLUMN(x, y) ? ALIGN_BOTTOM_SCREEN_LEFT : 0)
+                                                | (HUD_BOTTOM_IS_TOP_ROW(arg1) ? ALIGN_BOTTOM_SCREEN_TOP_ROW : 0);
 #endif
     temp_s0->unk2 = 0;
     if (arg1 == 7) {
@@ -669,6 +672,13 @@ RECOMP_PATCH void func_global_asm_806F9B64(s32 arg0) {
     previousCounter = (*counter)->unk14;
     previousCounter->unk0 = D_global_asm_80754280->hud_item[arg0].screen_x + 20;
     previousCounter->unk4 = D_global_asm_80754280->hud_item[arg0].screen_y - 20;
+#ifdef DK64_3DS
+    // The kong heads and their counts (func_global_asm_806FA1A4 places both
+    // from here) a little lower on the touch screen.
+    if (recomp_get_hud_on_bottom()) {
+        previousCounter->unk4 += HUD_BOTTOM_GB_HEADS_DY;
+    }
+#endif
     for (i = 0; i < 5; i++) {
         setSpriteAlignment(ALIGN_LEFT);
         func_global_asm_807149FC(-1);
