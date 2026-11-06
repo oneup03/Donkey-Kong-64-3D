@@ -72,10 +72,18 @@ enum {
 #define KONG_WEAPON 2           // xxxxxshw: the gun, homing, sniper
 #define KONG_INSTRUMENT 4       // its first bit: the instrument
 
+// A fade or zipper (a game's load, a level's, a bananaport's) covers the
+// top screen: D_global_asm_807FD888 runs from 0 to 31 (covered) and back,
+// and is 0 again only once it has opened (func_global_asm_80704484). The
+// top screen's HUD is under it; the touch screen's waits for it.
+static s32 hud_in_transition(void) {
+    return D_global_asm_807FD888 != 0.0f;
+}
+
 // In the adventure, and what the melons' draw tests too: the game shows its HUD.
 static s32 hud_game_shows(void) {
     return gameIsInAdventureMode() && !(global_properties_bitfield & 3) && !func_global_asm_80714464()
-        && current_map != MAP_MAIN_MENU;
+        && current_map != MAP_MAIN_MENU && !hud_in_transition();
 }
 
 // The kong the counters up were made for.
@@ -170,6 +178,15 @@ RECOMP_PATCH Gfx *func_global_asm_806FAB20(Gfx *dl) {
         return dl;
     }
     keep = recomp_get_hud_on_bottom() && hud_game_shows();
+    if (recomp_get_hud_on_bottom() && hud_in_transition()) {
+        // Down while the screen is covered, as on the kong's change: back
+        // up, coming in, once it has opened.
+        for (HUDItemIndex = 0; HUDItemIndex < 0xF; HUDItemIndex++) {
+            if (D_global_asm_80754280->hud_item[HUDItemIndex].hud_state != 0) {
+                func_global_asm_806F9518(HUDItemIndex);
+            }
+        }
+    }
     if (keep && func_global_asm_806C8DE0(0) != hud_kong) {
         // Another kong: what is up goes (the Golden Bananas' kong heads
         // with it, as nothing places them now) and comes back next frame
