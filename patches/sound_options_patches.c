@@ -720,12 +720,25 @@ s32 invertAxis(s32 original_value, f32 dGyro, f32 dMouse, u8 invNormal, u8 invGy
 }
 
 #ifdef DK64_3DS
-// aim_3ds.c. When the gyro gave the pitch, its look-down in the stick's
-// units (unrounded), for the callers to turn it by an angle.
+// The gyro apart from the stick: getStickPosition leaves the stick as it
+// is (no longer replaced by the gyro whenever it is centred) and keeps the
+// gyro's turn in degrees, unrounded, for the callers to add - the yaw by
+// its angle, the pitch by its angle through aim_3ds_raise (aim_3ds.c).
 f32 aim_3ds_raise(f32 h, f32 dist, f32 deg);
-static u8 stick_y_is_gyro = 0;
-static f32 stick_y_gyro = 0.0f;
 #define AIM_GYRO_DEG_PER_STICK 0.08f   // the yaw's degrees per stick unit, which the 3DS bridge's gyro is scaled to
+static f32 gyro_turn_deg = 0.0f;        // right
+static f32 gyro_look_down_deg = 0.0f;
+static f32 gyro_yaw_rest_first_person = 0.0f;
+static f32 gyro_yaw_rest_cannon = 0.0f;
+
+// The yaw is whole units, 4096 a turn: what a frame's turn leaves over is
+// carried to the next, so a slow turn is not rounded away.
+static s32 gyro_yaw_units(f32 deg, f32 *rest) {
+    f32 units = (deg * 4096.0f / 360.0f) + *rest;
+    s32 whole = (s32)units;
+    *rest = units - (f32)whole;
+    return whole;
+}
 #endif
 
 void getStickPosition(s32 *x, s32 *y) {
@@ -742,11 +755,14 @@ void getStickPosition(s32 *x, s32 *y) {
     recomp_get_mouse_inverted_axes(&invMouseX, &invMouseY);
     recomp_get_mouse_deltas(&dMouseX, &dMouseY);
     recomp_get_gyro_deltas(&dGyroY, &dGyroX);
-    *x = invertAxis(*x, dGyroX, dMouseX, invX, invGyroX, invMouseX);
 #ifdef DK64_3DS
-    stick_y_is_gyro = (*y == 0) && (dGyroY != 0.0f);
-    stick_y_gyro = invGyroY ? dGyroY : -dGyroY;   // as invertAxis gives it, before the round to s32
+    // Signed as invertAxis would give them, before its round to s32.
+    gyro_turn_deg = (invGyroX ? -dGyroX : dGyroX) * AIM_GYRO_DEG_PER_STICK;
+    gyro_look_down_deg = (invGyroY ? dGyroY : -dGyroY) * AIM_GYRO_DEG_PER_STICK;
+    dGyroX = 0.0f;
+    dGyroY = 0.0f;
 #endif
+    *x = invertAxis(*x, dGyroX, dMouseX, invX, invGyroX, invMouseX);
     *y = invertAxis(*y, dGyroY, dMouseY, !invY, !invGyroY, !invMouseY);
 }
 
@@ -771,9 +787,13 @@ RECOMP_PATCH void func_global_asm_806EA628(void) {
         temp_a0 = extra_player_info_pointer->unk104->additional_actor_data;
         temp_v1 = &temp_a0->unkB2;
         *temp_v1 -= (stick_x * 0.08 * func_global_asm_806EA2D8() * 4096.0) / 360.0;
-        temp_v0 = &temp_a0->unkB8;
 #ifdef DK64_3DS
-        if (stick_y_is_gyro) {
+        *temp_v1 -= gyro_yaw_units(gyro_turn_deg * func_global_asm_806EA2D8(), &gyro_yaw_rest_first_person);
+#endif
+        temp_v0 = &temp_a0->unkB8;
+        *temp_v0 += stick_y * 0.04 * func_global_asm_806EA2D8();
+#ifdef DK64_3DS
+        if (gyro_look_down_deg != 0.0f) {
             // The look point is 50 ahead, at 138 - unkB8 over the player's feet, and
             // the eye MAX(10, unk15E) over them (func_global_asm_806228BC).
             f32 eye;
@@ -786,11 +806,9 @@ RECOMP_PATCH void func_global_asm_806EA628(void) {
                 eye = MAX(0xA, gCurrentActorPointer->unk15E);
             }
             h = 138.0f - eye - *temp_v0;
-            *temp_v0 = 138.0f - eye - aim_3ds_raise(h, 50.0f,
-                -stick_y_gyro * AIM_GYRO_DEG_PER_STICK * func_global_asm_806EA2D8());
-        } else
+            *temp_v0 = 138.0f - eye - aim_3ds_raise(h, 50.0f, -gyro_look_down_deg * func_global_asm_806EA2D8());
+        }
 #endif
-        *temp_v0 += stick_y * 0.04 * func_global_asm_806EA2D8();
         *temp_v1 &= 0xFFF;
         if (temp_a0->unkBC + 0x32 < *temp_v0) {
             *temp_v0 = temp_a0->unkBC + 0x32;
@@ -873,17 +891,20 @@ RECOMP_PATCH void func_global_asm_806822FC(void) {
         getStickPosition(&stick_x, &stick_y);
         sp58 = temp_s1->unk4->PaaD->unk104;
         temp_s1->unk8 -= ((stick_x * 0.08 * D_global_asm_8074E7F8 * 4096.0) / 360.0);
+#ifdef DK64_3DS
+        temp_s1->unk8 -= gyro_yaw_units(gyro_turn_deg * D_global_asm_8074E7F8, &gyro_yaw_rest_cannon);
+#endif
         temp_s1->unk8 &= 0xFFF;
         sp54 = func_global_asm_80612794(temp_s1->unk8) * D_global_asm_8074E7F4;
         temp_f18 = func_global_asm_80612790(temp_s1->unk8) * D_global_asm_8074E7F4;
+        D_global_asm_8074E804 -= (stick_y * 0.04 * D_global_asm_8074E800);
 #ifdef DK64_3DS
-        if (stick_y_is_gyro) {
+        if (gyro_look_down_deg != 0.0f) {
             // The look point is D_global_asm_8074E7F4 ahead and D_global_asm_8074E804 over the eye.
             D_global_asm_8074E804 = aim_3ds_raise(D_global_asm_8074E804, D_global_asm_8074E7F4,
-                -stick_y_gyro * AIM_GYRO_DEG_PER_STICK * D_global_asm_8074E7F8);
-        } else
+                -gyro_look_down_deg * D_global_asm_8074E7F8);
+        }
 #endif
-        D_global_asm_8074E804 -= (stick_y * 0.04 * D_global_asm_8074E800);
         if (D_global_asm_8074E804 > 50.0) {
             D_global_asm_8074E804 = 50.0f;
         }
