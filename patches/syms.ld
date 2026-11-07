@@ -90,3 +90,4 @@ rand_recomp = 0x8F000184;
 recomp_get_hud_on_bottom = 0x8F000188;
 recomp_set_in_adventure = 0x8F00018C;
 recomp_stereo_set_aim_textures = 0x8F000190;
+recomp_stereo_set_convergence_cap = 0x8F000194;

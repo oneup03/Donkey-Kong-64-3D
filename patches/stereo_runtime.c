@@ -133,6 +133,34 @@ static s32 stereo_first_person_active(void) {
     return 1;
 }
 
+#ifdef DK64_3DS
+/**
+ * The bonus barrel games (Kremling Kosh and the like): the player's barrel
+ * cannon sits at the bottom of the frame, nearer than anything, in the strip
+ * the 3DS renderer's auto convergence leaves out for the chase camera's
+ * ground, and popped out of the screen. While it is up the convergence is
+ * held at STEREO_CANNON_GAME_CONVERGENCE world units at most, so the barrel
+ * stays near the screen and the field sits behind it.
+ * func_global_asm_806822FC, the cannon's update, runs only while it is up and
+ * pulses this; held as first person is, so it lapses within two frames.
+ */
+#define STEREO_CANNON_GAME_CONVERGENCE 10
+
+static u8 stereo_cannon_game_frames = 0;
+
+void stereo_note_cannon_game_frame(void) {
+    stereo_cannon_game_frames = STEREO_FIRST_PERSON_HOLD_FRAMES;
+}
+
+static s32 stereo_cannon_game_active(void) {
+    if (stereo_cannon_game_frames == 0) {
+        return 0;
+    }
+    stereo_cannon_game_frames--;
+    return 1;
+}
+#endif
+
 /**
  * Called once per frame from the main game thread. See
  * patches/boot_logos_patches.c, next to the dk64recomp_every_frame() event.
@@ -142,5 +170,6 @@ void stereo_runtime_tick(void) {
     recomp_stereo_set_first_person(stereo_first_person_active());
 #ifdef DK64_3DS
     aim_3ds_tick();
+    recomp_stereo_set_convergence_cap(stereo_cannon_game_active() ? STEREO_CANNON_GAME_CONVERGENCE : 0);
 #endif
 }

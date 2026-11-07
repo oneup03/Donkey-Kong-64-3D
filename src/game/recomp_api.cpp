@@ -186,6 +186,12 @@ extern "C" void recomp_stereo_set_aim_textures(uint8_t* rdram, recomp_context* c
     (void)rdram; (void)ctx;
 }
 
+// The 3DS renderer's low convergence in the bonus barrel games
+// (patches/stereo_runtime.c); the desktop has its own low-convergence scenes.
+extern "C" void recomp_stereo_set_convergence_cap(uint8_t* rdram, recomp_context* ctx) {
+    (void)rdram; (void)ctx;
+}
+
 extern "C" void recomp_get_story_skip(uint8_t* rdram, recomp_context* ctx) {
     switch (dk64::get_story_skip()) {
         case dk64::StorySkipMode::Off:
