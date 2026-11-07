@@ -24,6 +24,8 @@ void autocompleteLoop(void);                                // RecompAutocomplet
 void beetle_slowdown_main(void);                            // RecompEasierBeetle: every frame
 void changeShoeTimings(void);                               // RecompSlowShoe: map load
 void changeWindowTimings(void);                             // RecompSlowDKPhase: map load
+void infinite_items_every_frame(void);                      // infinite_consumables.c: every frame
+void infinite_items_file_start(void);                       //   file start
 
 // Which mods are on: read from the host at the events that start
 // something (init, every frame, map load, file start), not at the
@@ -111,6 +113,7 @@ void dk64recomp_every_frame(void) {
     if (builtin_mod_on(BUILTIN_MOD_TAG_ANYWHERE)) tag_anywhere();
     if (builtin_mod_on(BUILTIN_MOD_AUTOCOMPLETE_BONUS)) autocompleteLoop();
     if (builtin_mod_on(BUILTIN_MOD_EASIER_BEETLE)) beetle_slowdown_main();
+    infinite_items_every_frame();
 }
 
 void recomp_on_map_load(void) {
@@ -121,6 +124,7 @@ void recomp_on_map_load(void) {
 
 void recomp_on_file_start(void) {
     refresh();
+    infinite_items_file_start();
     if (builtin_mod_on(BUILTIN_MOD_NO_COMPANY_COINS)) open_coin_door();
 }
 

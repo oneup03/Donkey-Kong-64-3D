@@ -12,6 +12,7 @@
 #define BUILTIN_MOD_FIXED_BEAVER_BOTHER (1 << 4)    // lib/mods/RecompFixedBeaverBother
 #define BUILTIN_MOD_SLOW_SHOE           (1 << 5)    // lib/mods/RecompSlowShoe
 #define BUILTIN_MOD_SLOW_DK_PHASE       (1 << 6)    // lib/mods/RecompSlowDKPhase
+#define BUILTIN_MOD_INFINITE_ITEMS      (1 << 7)    // patches/infinite_consumables.c (the 3DS's own)
 
 #ifdef MIPS
 // Whether a mod is switched on, for the mods' own patches

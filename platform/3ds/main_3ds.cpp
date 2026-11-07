@@ -25,7 +25,7 @@ extern int g_dk64_camera_type, g_dk64_analog_cam_sensitivity, g_dk64_camera_inve
            g_dk64_swim_invert, g_dk64_gyro_aim, g_dk64_story_skip, g_dk64_lightning, g_dk64_draw_distance, g_dk64_particles,
            g_dk64_music_volume, g_dk64_sfx_volume, g_dk64_tag_anywhere,
            g_dk64_no_company_coins, g_dk64_autocomplete_bonuses, g_dk64_easier_beetle,
-           g_dk64_fixed_beaver_bother, g_dk64_slow_shoe, g_dk64_slow_dk_phase, g_dk64_chunk_cull_off, g_dk64_low_models, g_dk64_language,
+           g_dk64_fixed_beaver_bother, g_dk64_slow_shoe, g_dk64_slow_dk_phase, g_dk64_infinite_items, g_dk64_chunk_cull_off, g_dk64_low_models, g_dk64_language,
            g_dk64_in_adventure;
 
 // Tag Anywhere reads the N64 D-pad's left and right (tag backward and
@@ -112,6 +112,9 @@ MenuOption kOptions[] = {
     { "mod_slow_shoe", "Slow shoe", 0, 1, &g_dk64_slow_shoe, kOffOnNames, nullptr, PageMods },
     // RecompSlowDKPhase: a wider window in K. Rool's DK phase (next map load).
     { "mod_slow_dk_phase", "Slow DK phase", 0, 1, &g_dk64_slow_dk_phase, kOffOnNames, nullptr, PageMods },
+    // patches/infinite_consumables.c: ammo, oranges, crystals, film and
+    // instrument energy kept full once the player has them.
+    { "mod_infinite_items", "Infinite items", 0, 1, &g_dk64_infinite_items, kOffOnNames, nullptr, PageMods },
 };
 
 // DK64's defaults for the library's rows; settings.ini, once written, keeps

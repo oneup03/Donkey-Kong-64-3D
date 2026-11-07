@@ -54,7 +54,8 @@ int g_dk64_sfx_volume = 100;            // percent
 int g_dk64_tag_anywhere = 0;            // the mods built into the patches (patches/builtin_mods.c)
 int g_dk64_in_adventure = 0;            // the game is in its adventure (recomp_set_in_adventure)
 int g_dk64_no_company_coins = 0, g_dk64_autocomplete_bonuses = 0, g_dk64_easier_beetle = 0,
-    g_dk64_fixed_beaver_bother = 0, g_dk64_slow_shoe = 0, g_dk64_slow_dk_phase = 0;   // the Mods page
+    g_dk64_fixed_beaver_bother = 0, g_dk64_slow_shoe = 0, g_dk64_slow_dk_phase = 0,
+    g_dk64_infinite_items = 0;   // the Mods page
 
 extern "C" void recomp_update_inputs(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram; (void)ctx;
@@ -210,6 +211,7 @@ extern "C" void recomp_get_builtin_mods(uint8_t* rdram, recomp_context* ctx) {
     if (g_dk64_fixed_beaver_bother) on |= BUILTIN_MOD_FIXED_BEAVER_BOTHER;
     if (g_dk64_slow_shoe) on |= BUILTIN_MOD_SLOW_SHOE;
     if (g_dk64_slow_dk_phase) on |= BUILTIN_MOD_SLOW_DK_PHASE;
+    if (g_dk64_infinite_items) on |= BUILTIN_MOD_INFINITE_ITEMS;
     _return(ctx, on);
 }
 extern "C" void recomp_get_camera_type(uint8_t* rdram, recomp_context* ctx) { (void)rdram; _return(ctx, g_dk64_camera_type); }

@@ -166,10 +166,17 @@ each switched on and off on the settings' Mods page:
 | Fixed beavers | [RecompFixedBeaverBother](https://github.com/theballaam96/RecompFixedBeaverBother): gold beavers, beavers that go down the hole |
 | Slow shoe | [RecompSlowShoe](https://github.com/theballaam96/RecompSlowShoe): a slower toe sequence in the K. Rool fight |
 | Slow DK phase | [RecompSlowDKPhase](https://github.com/theballaam96/RecompSlowDKPhase): a wider window in K. Rool's DK phase |
+| Infinite items | This port's own: ammo, homing ammo, orange grenades, crystal coconuts, film and instrument energy stay full |
 
 No coin door sets the door's flag in the save when a file starts, so the
 door stays open after switching it off. Slow shoe and Slow DK phase apply
 from the next time the fight's map loads.
+
+Infinite items fills only what the player already has: an item is kept full
+once its count has been above zero in that file (instrument energy per kong),
+so it doesn't hand out homing ammo before a homing crate, for example. It
+leaves alone multiplayer and the counters the game itself sets to infinite or
+unavailable, as in the bonus barrels and the K. Rool fight.
 
 The Mods page's **Language** row picks one of four translations (also CC0),
 applied the next time the game starts:
