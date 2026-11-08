@@ -63,8 +63,10 @@ sdmc:/3ds/
 
 The Controls page maps each button (A, B, X, Y, L, R, ZL, ZR and the
 D-pad's directions) to any N64 button, adds up to two N64 buttons on the
-touch screen, can turn off C-Stick up and down, and resets it all with
-Reset controls. In the arcade games, Donkey Kong and Jetpac, the D-pad
+touch screen, sets the C-Stick's up and down (up is off by default, so
+first person stays on X alone), and resets it all with Reset controls. It
+also has the aim, swim and camera inversions, the Camera type, Gyro aim and
+the deadzones. In the arcade games, Donkey Kong and Jetpac, the D-pad
 is the stick instead (digital, as the arcade's joystick was), and the
 Circle Pad still works. An Old 3DS, which has no C-Stick, ZL or ZR, leaves their
 rows out, and its Camera setting has no Analog choice.
@@ -77,15 +79,16 @@ current kong's icons: colored bananas, coins and Golden Bananas, the ammo
 while the kong has its gun, oranges, crystals and film while you have any,
 the instrument's while the kong has it, any other counter once the game
 has shown it, and the health melons. The counters fill the left two
-thirds, the melons sit at the top right, and the touch buttons under them.
+thirds in two columns, the melons sit at the top right, and the touch
+buttons under them.
 The minigame timer stays on the top screen.
 
 The Game page's Performance monitor setting (off by default) shows the
 frame rate and the cores' load on the touch screen; touch buttons stay
 either way. Off also stops the threads that measure the cores' load, which
 on an Old 3DS take every moment of core 1 the game leaves to the system.
-The Game page also sets each screen's brightness, and the 3D page puts the
-crosshair at the depth under it or at the HUD's.
+The Game page also has the desktop's options (Story skip, Lightning, Draw
+distance, the music and sound volumes) and sets each screen's brightness.
 
 SELECT opens the settings on the bottom screen: 3D depth, controls,
 camera, gyro aiming, the game options and the built-in mods. With Tag
@@ -101,8 +104,14 @@ the settings nor a screenshot.
 
 Holding SELECT for a second saves a screenshot to
 `sdmc:/3ds/DK64/screenshots/`: both eyes when 3D is on, and the touch
-screen, as BMPs. Use it rather than Luma's Rosalina screenshot, which has
-frozen the console with this game running.
+screen, as BMPs. They are numbered on from the last one there, so a new
+one never replaces an old one. Use it rather than Luma's Rosalina
+screenshot, which has frozen the console with this game running. (The Game
+page's Hold SELECT row can make the hold save a frame capture for
+debugging instead.)
+
+HOME (or POWER) doesn't leave for the HOME Menu while the game runs: it
+pauses the game and asks first, X to quit and B to resume.
 
 ## Stereo 3D
 
@@ -161,7 +170,7 @@ each switched on and off on the settings' Mods page:
 
 | Setting | Mod |
 |---|---|
-| Tag Anywhere | [DK64TagAnywhereRecomp](https://github.com/Killklli/DK64TagAnywhereRecomp): switch kongs anywhere with D-pad left/right |
+| Tag Anywhere | [DK64TagAnywhereRecomp](https://github.com/Killklli/DK64TagAnywhereRecomp): switch kongs anywhere (here with the touch screen's Left and Right buttons) |
 | No coin door | [RecompNoCompanyCoins](https://github.com/theballaam96/RecompNoCompanyCoins): Helm's coin door opens without the Nintendo and Rareware coins |
 | Auto bonuses | [RecompAutocompleteBonuses](https://github.com/theballaam96/RecompAutocompleteBonuses): a bonus barrel gives its reward at once |
 | Easy beetle | [RecompEasierBeetle](https://github.com/theballaam96/RecompEasierBeetle): slower beetle races |
