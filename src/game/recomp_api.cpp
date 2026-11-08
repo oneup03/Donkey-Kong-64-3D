@@ -180,6 +180,12 @@ extern "C" void recomp_set_in_adventure(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram; (void)ctx;
 }
 
+// The 3DS build's D-pad is the stick in the arcade games
+// (patches/builtin_mods.c); here the controller is mapped by the player.
+extern "C" void recomp_set_arcade_game(uint8_t* rdram, recomp_context* ctx) {
+    (void)rdram; (void)ctx;
+}
+
 // The 3DS renderer finds the bonus games' crosshair by its texture and
 // pauses the match for the race arrows (patches/aim_3ds.c); RT64 does not.
 extern "C" void recomp_stereo_set_aim_textures(uint8_t* rdram, recomp_context* ctx) {

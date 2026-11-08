@@ -197,6 +197,11 @@ extern "C" void recomp_get_story_skip(uint8_t* rdram, recomp_context* ctx) { (vo
 // patches/builtin_mods.c, as the game goes in and out of its adventure:
 // Tag Anywhere's touch-screen buttons are up only there.
 void dk64_set_tag_buttons();    // main_3ds.cpp
+// patches/builtin_mods.c: in the arcade games (Donkey Kong, Jetpac) the
+// D-pad is the stick, digital as the arcade's joystick was.
+extern "C" void recomp_set_arcade_game(uint8_t* rdram, recomp_context* ctx) {
+    recomp3ds::input_set_dpad_stick(_arg<0, s32>(rdram, ctx) != 0);
+}
 extern "C" void recomp_set_in_adventure(uint8_t* rdram, recomp_context* ctx) {
     g_dk64_in_adventure = _arg<0, s32>(rdram, ctx) != 0;
     dk64_set_tag_buttons();

@@ -127,7 +127,7 @@ const MenuDefault kDefaults[] = {
     { "stick_deadzone", 15 },           // percent
     { "cstick_deadzone", 20 },          // percent
     { "cstick_up", 0 },                 // first person from X (C-Up) only
-    { "hud_on_bottom", 0 },             // the HUD on the top screen, as on the N64 (the Game page's HUD row)
+    { "hud_on_bottom", 1 },             // the HUD on the touch screen (the Game page's HUD row; Top puts it back as on the N64)
     // A quarter of each particle burst on an Old 3DS (the Particles row).
     { "particles", 2, MenuDefault::Old3dsOnly },
     // The Kongs' multiplayer models and far actors' low models (the Models row).

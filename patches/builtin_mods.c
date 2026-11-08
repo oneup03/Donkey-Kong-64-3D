@@ -8,6 +8,7 @@
 // before. A mod switched off leaves the game vanilla.
 #ifdef DK64_BUILTIN_MODS
 
+#include "common_structs.h"
 #include "patch_helpers.h"
 #include "options.h"
 #include "builtin_mods.h"
@@ -94,9 +95,12 @@ void recomp_on_init(void) {
 }
 
 extern int gameIsInAdventureMode(void);
+extern Maps current_map;
 
 // What the host was last told of the adventure (recomp_set_in_adventure).
 static s32 in_adventure = -1;
+// ... and of the arcade games (recomp_set_arcade_game).
+static s32 in_arcade = -1;
 
 void dk64recomp_every_frame(void) {
     const s32 adventure = gameIsInAdventureMode() != 0;
@@ -105,6 +109,13 @@ void dk64recomp_every_frame(void) {
     if (adventure != in_adventure) {
         recomp_set_in_adventure(adventure);
         in_adventure = adventure;
+    }
+    {
+        const s32 arcade = current_map == MAP_DK_ARCADE || current_map == MAP_JETPAC;
+        if (arcade != in_arcade) {
+            recomp_set_arcade_game(arcade);
+            in_arcade = arcade;
+        }
     }
 #ifdef DK64_LANGUAGES
     language_every_frame();

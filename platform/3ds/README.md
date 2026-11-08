@@ -64,12 +64,14 @@ sdmc:/3ds/
 The Controls page maps each button (A, B, X, Y, L, R, ZL, ZR and the
 D-pad's directions) to any N64 button, adds up to two N64 buttons on the
 touch screen, can turn off C-Stick up and down, and resets it all with
-Reset controls. An Old 3DS, which has no C-Stick, ZL or ZR, leaves their
+Reset controls. In the arcade games, Donkey Kong and Jetpac, the D-pad
+is the stick instead (digital, as the arcade's joystick was), and the
+Circle Pad still works. An Old 3DS, which has no C-Stick, ZL or ZR, leaves their
 rows out, and its Camera setting has no Analog choice.
 
-The HUD is on the top screen by default, as on the N64. The Game page's
-HUD row moves it to the touch screen, leaving the top screen to the scene.
-There, while you play (not in the opening, the DK TV demos or the menus),
+The HUD is on the touch screen by default, leaving the top screen to the
+scene; the Game page's HUD row puts it back on the top screen, as on the
+N64. On the touch screen, while you play (not in the opening, the DK TV demos or the menus),
 every counter of the level stays up instead of sliding away, with the
 current kong's icons: colored bananas, coins and Golden Bananas, the ammo
 while the kong has its gun, oranges, crystals and film while you have any,
