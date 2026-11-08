@@ -66,8 +66,8 @@ u32 func_global_asm_806119A0(void); // Having this here to prevent having to dec
 // The top row (coloured bananas, coins and what takes their place in races
 // and minigames, the melons) up a little, and the Golden Bananas' kong heads
 // down a little, or DK's head covered the coloured banana.
-#define HUD_BOTTOM_RIGHT_SHIFT (-96)
-#define HUD_BOTTOM_MELONS_SHIFT 110
+#define HUD_BOTTOM_RIGHT_SHIFT (-128)
+#define HUD_BOTTOM_MELONS_SHIFT 92
 #define HUD_BOTTOM_TOP_ROW_DY (-6)
 #define HUD_BOTTOM_GB_HEADS_DY 4
 #define HUD_BOTTOM_IS_RIGHT_COLUMN(x, y) ((x) > 240 && (y) < 190)
