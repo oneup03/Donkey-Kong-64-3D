@@ -9,9 +9,6 @@ extern s8 D_global_asm_8074583C;
 extern void func_global_asm_8060A398(s32 arg0);
 // Defined in stereo_runtime.c.
 extern void stereo_note_first_person_frame(void);
-#ifdef DK64_3DS
-extern void stereo_note_cannon_game_frame(void);
-#endif
 extern void func_global_asm_80737B58(u8 arg0, u16 arg1);
 RECOMP_DECLARE_EVENT(recomp_on_file_start());
 RECOMP_DECLARE_EVENT(recomp_on_new_file_start());
@@ -878,11 +875,6 @@ RECOMP_PATCH void func_global_asm_806822FC(void) {
     s32 pad[3];
     s32 stick_x, stick_y;
 
-#ifdef DK64_3DS
-    // The bonus barrel games' cannon, every frame it is up: auto convergence
-    // measures the whole frame, the barrel at its bottom too (stereo_runtime.c).
-    stereo_note_cannon_game_frame();
-#endif
     temp_s1 = gCurrentActorPointer->AAD_as_array[0];
     sp4B = 0;
     sp4A = 0;

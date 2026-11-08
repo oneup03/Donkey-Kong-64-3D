@@ -39,6 +39,8 @@ extern u8 game_mode;
 // patches_interpolation.c treats 3 and 4 as the Arcade/Jetpac sub-modes.
 extern u8 is_cutscene_active;
 
+extern Maps current_map;
+
 enum stereo_game_mode {
     STEREO_GAME_MODE_NINTENDO_LOGO = 0,
     STEREO_GAME_MODE_OPENING_CUTSCENE = 1,
@@ -135,29 +137,38 @@ static s32 stereo_first_person_active(void) {
 
 #ifdef DK64_3DS
 /**
- * The bonus barrel games (Kremling Kosh and the like): the player's barrel
- * cannon sits at the bottom of the frame, nearer than anything, in the strip
- * the 3DS renderer's auto convergence leaves out for the chase camera's
- * ground, and popped out of the screen. While it is up the convergence is
- * held at STEREO_CANNON_GAME_CONVERGENCE world units at most, so the barrel
- * stays near the screen and the field sits behind it.
- * func_global_asm_806822FC, the cannon's update, runs only while it is up and
- * pulses this; held as first person is, so it lapses within two frames.
+ * The bonus barrel games played from a barrel cannon at the bottom of the
+ * frame (Kremling Kosh, Teetering Turtle Trouble, Peril Path Panic, Krazy
+ * Kong Klamour): the barrel is nearer than anything, in the strip the 3DS
+ * renderer's auto convergence leaves out for the chase camera's ground, and
+ * popped out of the screen. Their maps are held at a set convergence, 2.0 on
+ * the settings' scale (STEREO_BARREL_GAME_CONVERGENCE world units), tuned on
+ * the console.
  */
-#define STEREO_CANNON_GAME_CONVERGENCE 10
+#define STEREO_BARREL_GAME_CONVERGENCE 40
 
-static u8 stereo_cannon_game_frames = 0;
-
-void stereo_note_cannon_game_frame(void) {
-    stereo_cannon_game_frames = STEREO_FIRST_PERSON_HOLD_FRAMES;
-}
-
-static s32 stereo_cannon_game_active(void) {
-    if (stereo_cannon_game_frames == 0) {
-        return 0;
+static s32 stereo_barrel_game_map(void) {
+    switch (current_map) {
+        case MAP_KREMLING_KOSH_VERY_EASY:
+        case MAP_KREMLING_KOSH_EASY:
+        case MAP_KREMLING_KOSH_NORMAL:
+        case MAP_KREMLING_KOSH_HARD:
+        case MAP_TEETERING_TURTLE_TROUBLE_VERY_EASY:
+        case MAP_TEETERING_TURTLE_TROUBLE_EASY:
+        case MAP_TEETERING_TURTLE_TROUBLE_NORMAL:
+        case MAP_TEETERING_TURTLE_TROUBLE_HARD:
+        case MAP_PERIL_PATH_PANIC_VERY_EASY:
+        case MAP_PERIL_PATH_PANIC_EASY:
+        case MAP_PERIL_PATH_PANIC_NORMAL:
+        case MAP_PERIL_PATH_PANIC_HARD:
+        case MAP_KRAZY_KONG_KLAMOUR_EASY:
+        case MAP_KRAZY_KONG_KLAMOUR_NORMAL:
+        case MAP_KRAZY_KONG_KLAMOUR_HARD:
+        case MAP_KRAZY_KONG_KLAMOUR_INSANE:
+            return 1;
+        default:
+            return 0;
     }
-    stereo_cannon_game_frames--;
-    return 1;
 }
 #endif
 
@@ -170,6 +181,6 @@ void stereo_runtime_tick(void) {
     recomp_stereo_set_first_person(stereo_first_person_active());
 #ifdef DK64_3DS
     aim_3ds_tick();
-    recomp_stereo_set_convergence_cap(stereo_cannon_game_active() ? STEREO_CANNON_GAME_CONVERGENCE : 0);
+    recomp_stereo_set_scene_convergence(stereo_barrel_game_map() ? STEREO_BARREL_GAME_CONVERGENCE : 0);
 #endif
 }

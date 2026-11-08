@@ -188,7 +188,7 @@ extern "C" void recomp_stereo_set_aim_textures(uint8_t* rdram, recomp_context* c
 
 // The 3DS renderer's low convergence in the bonus barrel games
 // (patches/stereo_runtime.c); the desktop has its own low-convergence scenes.
-extern "C" void recomp_stereo_set_convergence_cap(uint8_t* rdram, recomp_context* ctx) {
+extern "C" void recomp_stereo_set_scene_convergence(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram; (void)ctx;
 }
 

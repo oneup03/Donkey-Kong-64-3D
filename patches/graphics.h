@@ -24,11 +24,11 @@ DECLARE_FUNC(void, recomp_stereo_set_first_person, s32 active);
 // bonus games' crosshair texture, are up (aim_3ds.c). The 3DS only.
 DECLARE_FUNC(void, recomp_stereo_set_aim_textures, s32 on);
 
-// The 3DS renderer's convergence held at most this many world units
-// (rt64_3ds::set_convergence_cap), 0 for none: low in the bonus barrel
-// games, whose barrel cannon sits in the bottom strip auto convergence
-// leaves out (stereo_runtime.c). The 3DS only.
-DECLARE_FUNC(void, recomp_stereo_set_convergence_cap, s32 units);
+// The 3DS renderer's convergence set to this many world units
+// (rt64_3ds::set_scene_convergence), 0 for none: the bonus barrel games,
+// whose barrel cannon sits in the bottom strip auto convergence leaves out
+// (stereo_runtime.c). The 3DS only.
+DECLARE_FUNC(void, recomp_stereo_set_scene_convergence, s32 units);
 
 // Fill a rectangle of an RGBA16 framebuffer in RDRAM with what is on screen,
 // for game code that reads pixels (the fairy camera). xy = x << 16 | y and

@@ -176,10 +176,10 @@ extern "C" void recomp_stereo_set_aim_textures(uint8_t* rdram, recomp_context* c
     rt64_3ds::set_aim_textures(_arg<0, s32>(rdram, ctx) != 0);
 }
 
-// patches/stereo_runtime.c: the convergence held low (world units, 0 none)
-// while a bonus barrel game's cannon is up.
-extern "C" void recomp_stereo_set_convergence_cap(uint8_t* rdram, recomp_context* ctx) {
-    rt64_3ds::set_convergence_cap((float)_arg<0, s32>(rdram, ctx));
+// patches/stereo_runtime.c: the convergence set (world units, 0 none) in
+// the bonus barrel games.
+extern "C" void recomp_stereo_set_scene_convergence(uint8_t* rdram, recomp_context* ctx) {
+    rt64_3ds::set_scene_convergence((float)_arg<0, s32>(rdram, ctx));
 }
 
 // The fairy camera reads the picture out of the framebuffer (patches_heap.c).
