@@ -202,6 +202,27 @@ void dk64_set_tag_buttons();    // main_3ds.cpp
 extern "C" void recomp_set_arcade_game(uint8_t* rdram, recomp_context* ctx) {
     recomp3ds::input_set_dpad_stick(_arg<0, s32>(rdram, ctx) != 0);
 }
+// patches/hud_3ds.c: the main menu's leaves (8 tiles of 32x64 RGBA16 in
+// the patches' memory) made the touch screen's picture behind the HUD, as
+// the patch drew them before: the menu's 128x128 block, tiles 4-7 along its
+// top 64 rows and 0-3 below, 32 columns each, every tile upside down,
+// repeated from the top left; a texel with alpha 0 black (they were
+// blended over black).
+extern "C" void recomp_set_hud_leaves(uint8_t* rdram, recomp_context* ctx) {
+    static uint16_t picture[320 * 240];
+    constexpr uint32_t kTileBytes = 32 * 64 * 2;
+    const gpr base = ctx->r4;
+    for (uint32_t y = 0; y < 240; y++) {
+        const uint32_t by = y & 127, row = (by < 64 ? 4u : 0u), ty = 63 - (by & 63);
+        for (uint32_t x = 0; x < 320; x++) {
+            const uint32_t bx = x & 127, tile = row + (bx >> 5);
+            const uint16_t c = MEM_HU((int32_t)(tile * kTileBytes + (ty * 32 + (bx & 31)) * 2), base);    // RGBA5551
+            const uint16_t r = c >> 11, g = (c >> 6) & 31, b = (c >> 1) & 31;
+            picture[y * 320 + x] = (c & 1) ? (uint16_t)((r << 11) | (((g << 1) | (g >> 4)) << 5) | b) : 0;
+        }
+    }
+    rt64_3ds::set_bottom_background(picture);
+}
 extern "C" void recomp_set_in_adventure(uint8_t* rdram, recomp_context* ctx) {
     g_dk64_in_adventure = _arg<0, s32>(rdram, ctx) != 0;
     dk64_set_tag_buttons();

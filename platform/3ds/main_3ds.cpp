@@ -252,6 +252,10 @@ int main(int argc, char** argv) {
     // page's HUD row choosing; the counters keep their N64 places there,
     // the melons along the top.
     desc.render.hud_on_bottom_supported = true;
+    // Behind it, the main menu's leaves: their picture made once the menu
+    // has drawn them (recomp_set_hud_leaves), shown in the frames whose
+    // HUD is there (gEX3DSBottomBackground, patches/hud_3ds.c).
+    desc.render.hud_bottom_background_at_run_time = true;
     desc.render.depth_to_rdram = true;      // the camera's wall avoidance samples the depth buffer
     desc.render.depthless_world_is_hud = true;   // the fairy-camera film card: HUD depth
     // The patches tag the camera, actors and bones for RT64's high frame

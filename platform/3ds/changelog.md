@@ -1,5 +1,11 @@
 # Changelog
 
+## November 11, 2026
+
+### New
+
+- The touch-screen HUD takes less work to draw: only the part that changed is redrawn, its text and the leaves behind it are drawn by the GPU, and the in-between frames at 60 fps skip it.
+
 ## November 8, 2026
 
 ### New

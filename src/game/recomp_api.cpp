@@ -186,6 +186,12 @@ extern "C" void recomp_set_arcade_game(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram; (void)ctx;
 }
 
+// The 3DS's touch screen takes the main menu's leaves as the picture behind
+// its HUD (patches/hud_3ds.c); RT64 has no touch screen.
+extern "C" void recomp_set_hud_leaves(uint8_t* rdram, recomp_context* ctx) {
+    (void)rdram; (void)ctx;
+}
+
 // The 3DS renderer finds the bonus games' crosshair by its texture and
 // pauses the match for the race arrows (patches/aim_3ds.c); RT64 does not.
 extern "C" void recomp_stereo_set_aim_textures(uint8_t* rdram, recomp_context* ctx) {

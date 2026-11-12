@@ -163,6 +163,10 @@ same animations with a third to a half less geometry, and puts far actors
 on their low-detail models as the N64 did (the blue beaver's). An Old 3DS
 starts with Particles at Quarter and Models at Low.
 
+The HUD on the touch screen costs a little to draw. Setting the Game page's
+**HUD** row to Top screen may run a little better, as the touch screen then
+has nothing to draw.
+
 ## Built-in mods
 
 The 3DS has no mod loader, so a few community mods (all CC0) are built in,

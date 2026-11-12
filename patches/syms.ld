@@ -92,3 +92,4 @@ recomp_set_in_adventure = 0x8F00018C;
 recomp_stereo_set_aim_textures = 0x8F000190;
 recomp_stereo_set_scene_convergence = 0x8F000194;
 recomp_set_arcade_game = 0x8F000198;
+recomp_set_hud_leaves = 0x8F00019C;

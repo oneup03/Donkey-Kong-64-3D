@@ -36,6 +36,7 @@
 #include "rt64_3ds_gbi.h"
 
 DECLARE_FUNC(s32, recomp_get_hud_on_bottom);
+DECLARE_FUNC(void, recomp_set_hud_leaves, void *tiles);
 
 extern void func_global_asm_806F8BC4(s32 HUDItemIndex, u8 arg1, s32 arg2);
 extern void func_global_asm_806F9518(s32 HUDItemIndex);
@@ -278,12 +279,16 @@ RECOMP_PATCH Gfx *func_global_asm_80709344(Gfx *dl) {
 
 // The main menu's leaves, still, behind the touch screen's HUD. The menu
 // background (func_global_asm_80706F90, patches_framebuffer.c) loads its 8
-// tiles (32x64 RGBA16, TABLE_25) and hands them here, copied, so play
-// loads nothing for them; the adventure always starts from that menu.
+// tiles (32x64 RGBA16, TABLE_25) and hands them here, copied; the adventure
+// always starts from that menu. The host makes them the touch screen's
+// picture (recomp_set_hud_leaves: the menu's 128x128 block of tiles, 4
+// columns of 32 and two rows of 64, flipped as the menu draws them, repeated
+// over the 320x240, not scrolling), so play draws nothing for them.
 #define HUD_LEAF_TILES 8
 #define HUD_LEAF_TILE_WORDS (32 * 64 * 2 / 4)
 static u32 hud_leaves[HUD_LEAF_TILES][HUD_LEAF_TILE_WORDS] __attribute__((aligned(8)));
 static s32 hud_leaves_kept = FALSE;
+static s32 hud_leaves_sent = FALSE;     // the host's picture is of these
 
 void hud_3ds_keep_leaves(void **tiles) {
     s32 i, w;
@@ -297,50 +302,27 @@ void hud_3ds_keep_leaves(void **tiles) {
     for (i = 0; i < HUD_LEAF_TILES; i++) {
         const u32 *src = (const u32 *)tiles[i];
         for (w = 0; w < HUD_LEAF_TILE_WORDS; w++) {
-            hud_leaves[i][w] = src[w];
+            if (hud_leaves[i][w] != src[w]) {
+                hud_leaves[i][w] = src[w];
+                hud_leaves_sent = FALSE;
+            }
         }
     }
     hud_leaves_kept = TRUE;
 }
 
-// At the frame's start, before anything the HUD marks: the menu's 128x128
-// block of tiles (4 columns of 32, two rows of 64, flipped as the menu draws
-// them) repeated over the touch screen's 320x240, not scrolling.
+// At the frame's start: the leaves behind everything the HUD marks there,
+// in the frames where the HUD shows on the touch screen (rt64-3ds draws
+// the picture in the frames whose list asks for it, black in the rest).
 Gfx *hud_3ds_background(Gfx *dl) {
-    s32 row, col, bx, by, tile;
     if (!hud_leaves_kept || cc_number_of_players >= 2 || !recomp_get_hud_on_bottom() || !hud_game_shows()) {
         return dl;
     }
-    gEX3DSBottomScreen(dl++, 0, 0);
-    gDPPipeSync(dl++);
-    gSPLoadGeometryMode(dl++, 0);
-    gSPSetGeometryMode(dl++, G_SHADE | G_SHADING_SMOOTH);
-    gDPSetCycleType(dl++, G_CYC_1CYCLE);
-    gDPSetRenderMode(dl++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
-    gDPSetCombineMode(dl++, G_CC_MODULATEIDECALA_PRIM, G_CC_MODULATEIDECALA_PRIM);
-    gDPSetTexturePersp(dl++, G_TP_NONE);
-    gDPSetTextureFilter(dl++, G_TF_BILERP);
-    gSPTexture(dl++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON);
-    gDPSetPrimColor(dl++, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF);
-    tile = 0;
-    for (row = 64; row >= 0; row -= 64) {
-        for (col = 0; col < 128; col += 32, tile++) {
-            gDPPipeSync(dl++);
-            gDPLoadTextureBlock(dl++, hud_leaves[tile], G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 64, 0,
-                                G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
-                                G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
-            for (bx = 0; bx < 320; bx += 128) {
-                for (by = 0; by < 240; by += 128) {
-                    const s32 x = (bx + col) << 2, y = (by + row) << 2;
-                    gSPScisTextureRectangle(dl++, x, y, x + 0x80, y + 0x100, 0, 0, 0x7FF, 1024, -1024);
-                }
-            }
-        }
+    if (!hud_leaves_sent) {
+        recomp_set_hud_leaves(hud_leaves);
+        hud_leaves_sent = TRUE;
     }
-    gDPPipeSync(dl++);
-    gSPTexture(dl++, 0x8000, 0x8000, 0, G_TX_RENDERTILE, G_OFF);
-    gDPSetTexturePersp(dl++, G_TP_PERSP);
-    gEX3DSTopScreen(dl++);
+    gEX3DSBottomBackground(dl++);
     return dl;
 }
 
