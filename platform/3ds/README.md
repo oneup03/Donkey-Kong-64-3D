@@ -10,12 +10,17 @@ slowly (see Performance). The renderer and platform layer are
 Download the latest build from the
 [releases page](https://github.com/oneup03/Donkey-Kong-64-3D/releases/tag/rolling):
 
-- **CIA** (`DK64Recompiled3D-3ds-<commit>.cia`): install it with FBI or
+- **CIA** (`DK64Recompiled3D-3ds.cia`): install it with FBI or
   another CIA installer, or scan the QR code below with FBI
-  (Remote Install > Scan QR Code). It appears on the HOME Menu as "DK64:
+  (Remote Install > Scan QR Code; the code stays the same for each new
+  build). It appears on the HOME Menu as "DK64:
   ReKongpiled". On an Old 3DS or 2DS, use the CIA (see Performance).
 - **.3dsx** (`DK64Recompiled3D-3ds-<commit>.zip`): extract it to the root of
   the SD card and start `3ds/DK64/DK64.3dsx` from the Homebrew Launcher.
+- **.3dsx alone** (`DK64.3dsx`): the same program without the zip. Put it in
+  `sdmc:/3ds/DK64/` (over the zip's copy, to update) or in `sdmc:/3ds/`:
+  either way the game keeps its ROM, settings and save in `sdmc:/3ds/DK64/`.
+  Keep only one copy, or the Homebrew Launcher lists the game twice.
 
 ![QR code for FBI: the latest CIA](https://github.com/oneup03/Donkey-Kong-64-3D/releases/download/rolling/DK64Recompiled3D-3ds-QR.png)
 

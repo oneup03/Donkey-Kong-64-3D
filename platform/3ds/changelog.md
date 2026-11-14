@@ -1,5 +1,12 @@
 # Changelog
 
+## November 12, 2026
+
+### New
+
+- The release also has the .3dsx on its own, `DK64.3dsx`, so the Homebrew Launcher version updates without the zip: put it in `sdmc:/3ds/DK64/` over the old one.
+- The CIA keeps one name from build to build, `DK64Recompiled3D-3ds.cia`, so its download link and QR code no longer change.
+
 ## November 11, 2026
 
 ### New

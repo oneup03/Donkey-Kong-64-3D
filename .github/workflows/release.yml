@@ -544,7 +544,15 @@ jobs:
           # OpenDSP (embedded) is BSD 2-Clause: a binary release carries its licence.
           cp lib/rt64-3ds/third_party/OpenDSP/LICENSE "$out/OpenDSP-LICENSE.txt"
           (cd package && zip -q -r "../DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.zip" 3ds)
-          cp build-3ds/DK64Recompiled3DS.cia "DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.cia"
+          # The CIA, and the .3dsx on its own as well, under names that never
+          # change, so their links always give the latest build: Universal
+          # Updater downloads the link Universal-DB last read, which a name
+          # with the commit in it would break at each push. The .3dsx has the
+          # game's folder's name: Universal Updater saves it under that name
+          # in sdmc:/3ds/, or with its "Put 3DSX files in folder" setting in
+          # sdmc:/3ds/DK64/, as the zip has it.
+          cp build-3ds/DK64Recompiled3DS.cia DK64Recompiled3D-3ds.cia
+          cp build-3ds/DK64Recompiled3DS.3dsx DK64.3dsx
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
@@ -552,7 +560,8 @@ jobs:
           name: release-3ds
           path: |
             DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.zip
-            DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.cia
+            DK64Recompiled3D-3ds.cia
+            DK64.3dsx
           if-no-files-found: error
 
   publish:
@@ -569,12 +578,12 @@ jobs:
           merge-multiple: true
 
       # A QR code of the 3DS CIA's download link, for FBI's "Remote Install >
-      # Scan QR Code": shown in the release notes and kept as an asset under
-      # one name, so the README's image always shows the latest build's.
+      # Scan QR Code": shown in the release notes and kept as an asset. The
+      # CIA's name never changes, so neither does the code.
       - name: Make the 3DS CIA's QR code
         run: |
           sudo apt-get install -y --no-install-recommends qrencode
-          cia="DK64Recompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.cia"
+          cia=DK64Recompiled3D-3ds.cia
           test -f "dist/$cia"
           qrencode -o dist/DK64Recompiled3D-3ds-QR.png -s 8 -m 2 \
             "https://github.com/$GITHUB_REPOSITORY/releases/download/rolling/$cia"
@@ -591,6 +600,8 @@ jobs:
             echo "Scan with FBI (Remote Install > Scan QR Code) to install the CIA:"
             echo
             echo "![QR code for the 3DS CIA](https://github.com/$GITHUB_REPOSITORY/releases/download/rolling/DK64Recompiled3D-3ds-QR.png)"
+            echo
+            echo 'For the Homebrew Launcher: the zip, or DK64.3dsx alone (in sdmc:/3ds/DK64/ or sdmc:/3ds/). The README has the details.'
           } > notes.md
           gh release delete rolling --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
           gh release create rolling dist/* \
