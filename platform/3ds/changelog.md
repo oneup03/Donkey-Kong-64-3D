@@ -1,5 +1,11 @@
 # Changelog
 
+## November 15, 2026
+
+### Fixed
+
+- The game crashing after Dogadon's fight in Angry Aztec, as the boss key was picked up with the HUD on the touch screen. The fix also covers his fight in Fungi Forest.
+
 ## November 12, 2026
 
 ### New

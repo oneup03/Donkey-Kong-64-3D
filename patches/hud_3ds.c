@@ -228,6 +228,35 @@ RECOMP_PATCH Gfx *func_global_asm_806FAB20(Gfx *dl) {
     return dl;
 }
 
+// The game's sprites, a list linked through each sprite's 0x39C (the
+// decomp's Struct807FDB04::next).
+typedef struct HudSpriteLink {
+    u8 unk0[0x39C];
+    struct HudSpriteLink *next;
+} HudSpriteLink;
+extern HudSpriteLink *D_global_asm_807FDB04;
+extern void func_global_asm_806F95C8(void);
+
+// @recomp 3DS: every sprite freed (Dogadon's fights, between phases), the
+// HUD's counters taken down first. A counter's icon is one of these sprites
+// and the counter keeps a pointer to it, which the free left dangling: the
+// counter's next take-down freed it again, through memory by then reused
+// (on the touch screen, at the fade after Angry Aztec's boss key: issue 4).
+// The N64 rarely has a counter up then; the touch screen always has. They
+// come back the next frame (func_global_asm_806FAB20).
+RECOMP_PATCH void func_global_asm_807158C0(void) {
+    HudSpriteLink *sprite;
+    HudSpriteLink *next;
+
+    func_global_asm_806F95C8();
+    sprite = D_global_asm_807FDB04;
+    while (sprite != NULL) {
+        next = sprite->next;
+        func_global_asm_80715908((Struct80717D84 *)sprite);
+        sprite = next;
+    }
+}
+
 // The melons' own update draws them as they slide in and out; on the touch
 // screen that update still runs (it applies the damage and the healing) but
 // into this list, which nothing draws, and the melons are drawn at their
