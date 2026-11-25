@@ -9,6 +9,7 @@
 ### Fixed
 
 - The pause screen's top row of pixels showing noise.
+- Water and lava surfaces flickering at 60 fps while the camera moves.
 
 ## November 15, 2026
 
