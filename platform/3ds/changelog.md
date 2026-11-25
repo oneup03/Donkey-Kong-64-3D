@@ -5,11 +5,13 @@
 ### New
 
 - `audio_engine=2` in `settings.ini` plays the sound on the console's own DSP firmware (`sdmc:/3ds/dspfirm.cdc`, dumped with Luma3DS) in place of OpenDSP, with no reverb. If that file isn't there, OpenDSP plays it as before.
+- Hold SELECT (Game page) has a Capture pair option, which saves two frames in a row, for reporting a glitch that only shows at 60 fps.
 
 ### Fixed
 
 - The pause screen's top row of pixels showing noise.
 - Water, lava and other fluid surfaces flickering at 60 fps while the camera moves.
+- Distant scenery, such as the sky, could vanish for a frame at 60 fps when the camera faced straight along one of the world's axes.
 
 ## November 15, 2026
 
