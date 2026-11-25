@@ -1159,9 +1159,13 @@ RECOMP_PATCH Gfx* func_global_asm_8065FD88(Gfx* dl, u8 arg1, u8 arg2) {
     while (var_s0) {
         if ((var_s0->unk4C & 1) && (arg2 == D_global_asm_80748A90[var_s0->unk0->unk66].unk14[2])) {
             dl = func_global_asm_8065FEB8(dl, var_s0);
-            // Tag Matrix
+            // Tag Matrix: by the surface's place in the whole list, drawn or
+            // not, so each keeps its tag from frame to frame. Counting only
+            // the drawn ones, a surface going out of view moved every later
+            // one onto its neighbour's tag, and the in-between blended each
+            // water or lava patch's vertices toward the next patch's (a
+            // frame of torn surface at 60 fps).
             cur_drawn_model_transform_id = MTXTAG_FLUIDS + i;
-            i++;
             pushed_matrix_group = FALSE;
             cur_model_transform_id_offset = 0;
             cur_model_uses_vertex_interp = TRUE;
@@ -1181,6 +1185,7 @@ RECOMP_PATCH Gfx* func_global_asm_8065FD88(Gfx* dl, u8 arg1, u8 arg2) {
             }
             //
         }
+        i++;
         var_s0 = var_s0->next;
     }
     return dl;
