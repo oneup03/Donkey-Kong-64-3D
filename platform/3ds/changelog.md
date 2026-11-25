@@ -1,5 +1,11 @@
 # Changelog
 
+## November 25, 2026
+
+### New
+
+- `audio_engine=2` in `settings.ini` plays the sound on the console's own DSP firmware (`sdmc:/3ds/dspfirm.cdc`, dumped with Luma3DS) in place of OpenDSP, with no reverb. If that file isn't there, OpenDSP plays it as before.
+
 ## November 15, 2026
 
 ### Fixed

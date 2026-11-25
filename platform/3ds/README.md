@@ -35,7 +35,10 @@ Sound needs nothing more: the game brings its own DSP firmware, OpenDSP
 reverb. Should it fail to start, the game falls back to the console's own
 firmware at `sdmc:/3ds/dspfirm.cdc`, without reverb: dump that once with
 Luma3DS (the Rosalina menu, L + D-pad down + SELECT, then Miscellaneous
-options > Dump DSP firmware).
+options > Dump DSP firmware). To use that firmware in place of OpenDSP,
+add `audio_engine=2` to `sdmc:/3ds/DK64/settings.ini` (`1`, the default,
+plays on OpenDSP; `0` runs the original RSP audio on the CPU, which is
+slower). It's read when the game starts.
 
 On the SD card, once installed:
 
